@@ -1,0 +1,19 @@
+{
+  "contentType": "application/vnd.gorules.decision",
+  "nodes": [
+    { "id": "input", "type": "inputNode", "name": "Order", "position": { "x": 100, "y": 200 } },
+    {
+      "id": "route", "type": "decisionTableNode", "name": "Route order", "position": { "x": 400, "y": 200 },
+      "content": {
+        "hitPolicy": "first",
+        "inputs": [{ "id": "total", "name": "Order total", "field": "orderTotal" }],
+        "outputs": [{ "id": "process", "name": "Process key", "field": "processKey" }],
+        "rules": [
+          { "_id": "high-value", "total": ">= 1000", "process": "\"high-value-order\"" },
+          { "_id": "regular", "total": "", "process": "\"order-discount\"" }
+        ]
+      }
+    }
+  ],
+  "edges": [{ "id": "input-route", "type": "edge", "sourceId": "input", "targetId": "route" }]
+}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_LoanManualReview" targetNamespace="https://example.org/loan-manual-review">
+  <bpmn:process id="loan-manual-review" name="Loan manual review" isExecutable="true">
+    <bpmn:startEvent id="start" name="Start"><bpmn:outgoing>flow-start-review</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:serviceTask id="review-loan" name="Queue manual review" implementation="${environment.services.reviewLoan}"><bpmn:incoming>flow-start-review</bpmn:incoming><bpmn:outgoing>flow-review-end</bpmn:outgoing></bpmn:serviceTask>
+    <bpmn:endEvent id="end" name="End"><bpmn:incoming>flow-review-end</bpmn:incoming></bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow-start-review" sourceRef="start" targetRef="review-loan" />
+    <bpmn:sequenceFlow id="flow-review-end" sourceRef="review-loan" targetRef="end" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_LoanManualReview"><bpmndi:BPMNPlane id="Plane_LoanManualReview" bpmnElement="loan-manual-review">
+    <bpmndi:BPMNShape id="start_di" bpmnElement="start"><dc:Bounds x="90" y="180" width="36" height="36" /></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="review_di" bpmnElement="review-loan"><dc:Bounds x="220" y="158" width="140" height="80" /></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="end_di" bpmnElement="end"><dc:Bounds x="460" y="180" width="36" height="36" /></bpmndi:BPMNShape>
+    <bpmndi:BPMNEdge id="flow-start-review_di" bpmnElement="flow-start-review"><di:waypoint x="126" y="198" /><di:waypoint x="220" y="198" /></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="flow-review-end_di" bpmnElement="flow-review-end"><di:waypoint x="360" y="198" /><di:waypoint x="460" y="198" /></bpmndi:BPMNEdge>
+  </bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
+</bpmn:definitions>

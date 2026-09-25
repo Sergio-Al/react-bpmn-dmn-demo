@@ -2,6 +2,7 @@ import { EventEmitter } from 'node:events';
 import { createRequire } from 'node:module';
 import { Engine } from 'bpmn-engine';
 import type { DecisionService } from '@app/decisions';
+import { createServiceRegistry } from './services/index.js';
 
 const require = createRequire(import.meta.url);
 const camunda = require('camunda-bpmn-moddle/resources/camunda.json');
@@ -28,24 +29,7 @@ export async function runProcess(
   await engine.execute({
     listener,
     variables: { ...input },
-    services: {
-      async evaluateDecision(this: any, scope: any, callback: (error: Error | null, result?: unknown) => void) {
-        try {
-          const key = this.behaviour?.decisionRef;
-          if (!key || typeof key !== 'string') throw new Error('Business rule task has no decisionRef');
-          const result = await decisions.evaluate(key, finalVariables);
-          Object.assign(scope.environment.variables, result);
-          Object.assign(finalVariables, result);
-          callback(null, result);
-        } catch (error) { callback(error as Error); }
-      },
-      applyDiscount(scope: any, callback: (error: Error | null, result?: unknown) => void) {
-        const variables = scope.environment.variables as Record<string, unknown>;
-        variables.discountedTotal = Number((Number(variables.orderTotal) * (1 - Number(variables.discountRate))).toFixed(2));
-        finalVariables.discountedTotal = variables.discountedTotal;
-        callback(null, variables.discountedTotal);
-      },
-    },
+    services: createServiceRegistry(decisions, finalVariables),
   });
   await done;
   return { variables: finalVariables, path };

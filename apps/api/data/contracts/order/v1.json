@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Order request v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["customerTier", "orderTotal", "country"],
+  "properties": {
+    "customerTier": { "type": "string", "enum": ["gold", "silver", "bronze"] },
+    "orderTotal": { "type": "number", "minimum": 0 },
+    "country": { "type": "string", "pattern": "^[A-Za-z]{2}$", "minLength": 2, "maxLength": 2 }
+  },
+  "examples": [{ "customerTier": "gold", "orderTotal": 150, "country": "US" }]
+}

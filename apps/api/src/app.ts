@@ -6,6 +6,7 @@ import { getModel, listModels, saveModel } from './store.js';
 import { runProcess } from './process.js';
 import { validatePortableDecision } from './portable-decision.js';
 import { badRequest, ClientError } from './errors.js';
+import { registerRequestRoutes } from './requests.js';
 
 export function buildApp() {
   const app = Fastify({ logger: false });
@@ -17,7 +18,12 @@ export function buildApp() {
     }
     return reply.code(500).send({ error: 'Internal server error' });
   });
-  const decisions = new ZenDecisionService(async key => JSON.parse(await getModel('decisions', key)));
+  const decisions = new ZenDecisionService(async key => {
+    const graph = JSON.parse(await getModel('decisions', key));
+    if (key.startsWith('route-')) validatePortableDecision(graph);
+    return graph;
+  });
+  registerRequestRoutes(app, decisions);
 
   app.get('/health', async () => ({ ok: true }));
   app.get('/processes', async () => listModels('processes'));

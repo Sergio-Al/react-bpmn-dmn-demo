@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { badRequest, notFound } from './errors.js';
 
-const dataDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'data');
+export const dataDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'data');
 export type ModelKind = 'processes' | 'decisions';
 
 function modelPath(kind: ModelKind, key: string): string {

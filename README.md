@@ -25,6 +25,6 @@ npm run build
 - `apps/web` — UI with process and decision editors and a Run panel.
 - `apps/api` — HTTP API, BPMN execution, and file storage in `data/processes/*.bpmn` and `data/decisions/*.json`.
 - `packages/decisions` — `DecisionService` and ZEN adapter.
-- `docs` — [architecture and API](docs/architecture.md), [stack decision](docs/adr/0001-stack-a-zen-bpmn-engine.md), and [DMN portability guide](docs/dmn-portability.md).
+- `docs` — [architecture and API](docs/architecture.md), [stack decision](docs/adr/0001-stack-a-zen-bpmn-engine.md), [DMN portability guide](docs/dmn-portability.md), [typed request contracts](docs/request-contracts.md), and [routing ADR](docs/adr/0002-typed-requests-and-routing.md).
 
 The selected libraries are free/open source for this use: ZEN, its JDM editor, `bpmn-engine`, and `camunda-bpmn-moddle` are MIT licensed; `bpmn-js` uses the free bpmn.io license. **Keep the bpmn.io watermark visible and unobscured** in the modeler, as its license requires. [ZEN](https://github.com/gorules/zen/blob/master/README.md), [JDM editor](https://github.com/gorules/jdm-editor), [bpmn-engine](https://github.com/paed01/bpmn-engine/blob/master/LICENSE), [Camunda moddle](https://github.com/camunda/camunda-bpmn-moddle/blob/main/package.json), [bpmn.io license](https://bpmn.io/license/)

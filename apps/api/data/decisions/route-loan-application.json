@@ -1,0 +1,23 @@
+{
+  "contentType": "application/vnd.gorules.decision",
+  "nodes": [
+    { "id": "input", "type": "inputNode", "name": "Loan application", "position": { "x": 100, "y": 200 } },
+    {
+      "id": "route", "type": "decisionTableNode", "name": "Route loan application", "position": { "x": 400, "y": 200 },
+      "content": {
+        "hitPolicy": "first",
+        "inputs": [
+          { "id": "age", "name": "Applicant age", "field": "applicantAge" },
+          { "id": "amount", "name": "Amount", "field": "amount" }
+        ],
+        "outputs": [{ "id": "process", "name": "Process key", "field": "processKey" }],
+        "rules": [
+          { "_id": "young", "age": "< 21", "amount": "", "process": "\"loan-manual-review\"" },
+          { "_id": "large", "age": "", "amount": "> 50000", "process": "\"loan-manual-review\"" },
+          { "_id": "regular", "age": "", "amount": "", "process": "\"loan-auto-approve\"" }
+        ]
+      }
+    }
+  ],
+  "edges": [{ "id": "input-route", "type": "edge", "sourceId": "input", "targetId": "route" }]
+}

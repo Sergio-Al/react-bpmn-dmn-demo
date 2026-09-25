@@ -33,3 +33,53 @@ Example "Order discount" flow, end to end:
 3. Web: two pages — Process modeler (load/save .bpmn) and Decision editor (load/save JDM) — plus a
    "Run" panel that posts variables and shows the result.
 4. `npm test` covers DecisionService and one full process run.
+
+## Milestone 2 — typed requests: envelope + per-type contract + ZEN routing
+
+Goal: a client sends one standard envelope. `type` selects a payload contract (strict JSON Schema);
+a ZEN routing decision for that type evaluates the payload and picks which BPMN process runs.
+
+### Envelope (fixed, strict — `additionalProperties: false`)
+```json
+{ "requestId": "string", "type": "order", "version": 1, "payload": { } }
+```
+- `requestId`: non-empty string; echoed back. `type`: model key format `^[a-z0-9][a-z0-9-]*$`.
+- `version`: integer ≥ 1. `payload`: object, validated by the contract for `type` + `version`.
+
+### Type registry (files, same store as today)
+- `data/contracts/<type>/v<version>.json` — JSON Schema (draft 2020-12 or 07) for `payload`.
+  Contracts are strict: `additionalProperties: false`, explicit `required`, types, enums, min/max.
+- `data/decisions/route-<type>.json` — JDM routing decision. Input = payload fields; output must be
+  `{ "processKey": "<process id>" }` (may also return extra variables, merged into process vars).
+  Same portability rules as other decisions (decision tables only, first-hit).
+- `data/processes/<processKey>.bpmn` — the flows. Any process may still call other decisions via
+  business rule tasks.
+
+### API
+- `POST /requests` → validate envelope → load contract (unknown type/version → 400 `UNKNOWN_CONTRACT`)
+  → validate payload (→ 400 `CONTRACT_VIOLATION` with a list of `{ path, message }`)
+  → evaluate `route-<type>` → start `processKey` with variables = payload
+  (+ `request: { requestId, type, version }`). Route returning no/unknown processKey → 500
+  `ROUTING_ERROR` (it is a configuration bug, not a client error).
+- Response: `{ requestId, type, version, processKey, variables, path }`.
+- `GET /contracts`, `GET /contracts/:type/:version` — read-only for now.
+
+### Service tasks
+Replace the hard-coded `applyDiscount` with a small service registry (`apps/api/src/services/`),
+so each process references `${environment.services.<name>}` and new flows only add a handler.
+
+### Example types (placeholders until the user supplies real contracts)
+1. `order` v1 — payload `{ customerTier: "gold"|"silver"|"bronze", orderTotal: number ≥ 0, country: 2-letter }`.
+   `route-order`: orderTotal ≥ 1000 → `high-value-order`; otherwise → `order-discount` (existing).
+   `high-value-order`: business rule task (reuse `order-discount` decision) → service "flagForReview" → end.
+2. `loan-application` v1 — payload `{ applicantAge: integer 18–100, monthlyIncome: number > 0,
+   amount: number > 0, termMonths: 12|24|36|48 }`.
+   `route-loan-application` (first hit, plain comparisons only):
+   applicantAge < 21 → `loan-manual-review`; amount > 50000 → `loan-manual-review`;
+   otherwise → `loan-auto-approve`. No derived fields (e.g. amount/income ratio) in this
+   milestone — computed inputs are a later decision. Both processes: one service task each.
+
+### Web
+New "Send request" page: envelope JSON editor with a type selector that pre-fills an example
+payload from the contract, Send button, and a result view (processKey chosen, path, variables,
+or the contract violation list).

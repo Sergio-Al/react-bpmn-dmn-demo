@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_LoanAutoApprove" targetNamespace="https://example.org/loan-auto-approve">
+  <bpmn:process id="loan-auto-approve" name="Loan auto approve" isExecutable="true">
+    <bpmn:startEvent id="start" name="Start"><bpmn:outgoing>flow-start-approve</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:serviceTask id="approve-loan" name="Approve loan" implementation="${environment.services.approveLoan}"><bpmn:incoming>flow-start-approve</bpmn:incoming><bpmn:outgoing>flow-approve-end</bpmn:outgoing></bpmn:serviceTask>
+    <bpmn:endEvent id="end" name="End"><bpmn:incoming>flow-approve-end</bpmn:incoming></bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow-start-approve" sourceRef="start" targetRef="approve-loan" />
+    <bpmn:sequenceFlow id="flow-approve-end" sourceRef="approve-loan" targetRef="end" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_LoanAutoApprove"><bpmndi:BPMNPlane id="Plane_LoanAutoApprove" bpmnElement="loan-auto-approve">
+    <bpmndi:BPMNShape id="start_di" bpmnElement="start"><dc:Bounds x="90" y="180" width="36" height="36" /></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="approve_di" bpmnElement="approve-loan"><dc:Bounds x="220" y="158" width="140" height="80" /></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="end_di" bpmnElement="end"><dc:Bounds x="460" y="180" width="36" height="36" /></bpmndi:BPMNShape>
+    <bpmndi:BPMNEdge id="flow-start-approve_di" bpmnElement="flow-start-approve"><di:waypoint x="126" y="198" /><di:waypoint x="220" y="198" /></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="flow-approve-end_di" bpmnElement="flow-approve-end"><di:waypoint x="360" y="198" /><di:waypoint x="460" y="198" /></bpmndi:BPMNEdge>
+  </bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
+</bpmn:definitions>

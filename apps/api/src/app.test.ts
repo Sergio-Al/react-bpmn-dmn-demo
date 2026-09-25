@@ -8,7 +8,7 @@ test('API runs the order discount process through both gateway paths', async () 
   try {
     const processes = await app.inject({ method: 'GET', url: '/processes' });
     assert.equal(processes.statusCode, 200);
-    assert.deepEqual(processes.json(), ['order-discount']);
+    assert.ok(processes.json().includes('order-discount'));
 
     const gold = await app.inject({ method: 'POST', url: '/processes/order-discount/start', payload: { variables: { customerTier: 'gold', orderTotal: 150 } } });
     assert.equal(gold.statusCode, 200, gold.body);

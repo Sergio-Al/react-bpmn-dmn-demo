@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_OrderDiscount" targetNamespace="https://example.org/order-discount">
+  <bpmn:process id="order-discount" name="Order discount" isExecutable="true">
+    <bpmn:startEvent id="start" name="Start"><bpmn:outgoing>flow-start-rule</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:businessRuleTask id="determine-discount" name="Determine discount" camunda:decisionRef="order-discount" implementation="${environment.services.evaluateDecision}">
+      <bpmn:incoming>flow-start-rule</bpmn:incoming><bpmn:outgoing>flow-rule-gateway</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:exclusiveGateway id="discount-gateway" name="Discount &gt; 0?" default="flow-no-discount">
+      <bpmn:incoming>flow-rule-gateway</bpmn:incoming><bpmn:outgoing>flow-apply</bpmn:outgoing><bpmn:outgoing>flow-no-discount</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="apply-discount" name="Apply discount" implementation="${environment.services.applyDiscount}">
+      <bpmn:incoming>flow-apply</bpmn:incoming><bpmn:outgoing>flow-apply-end</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:task id="no-discount" name="No discount"><bpmn:incoming>flow-no-discount</bpmn:incoming><bpmn:outgoing>flow-no-end</bpmn:outgoing></bpmn:task>
+    <bpmn:endEvent id="end" name="End"><bpmn:incoming>flow-apply-end</bpmn:incoming><bpmn:incoming>flow-no-end</bpmn:incoming></bpmn:endEvent>
+    <bpmn:sequenceFlow id="flow-start-rule" sourceRef="start" targetRef="determine-discount" />
+    <bpmn:sequenceFlow id="flow-rule-gateway" sourceRef="determine-discount" targetRef="discount-gateway" />
+    <bpmn:sequenceFlow id="flow-apply" name="Yes" sourceRef="discount-gateway" targetRef="apply-discount">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${environment.variables.discountRate}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="flow-no-discount" name="No" sourceRef="discount-gateway" targetRef="no-discount" />
+    <bpmn:sequenceFlow id="flow-apply-end" sourceRef="apply-discount" targetRef="end" />
+    <bpmn:sequenceFlow id="flow-no-end" sourceRef="no-discount" targetRef="end" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_OrderDiscount">
+    <bpmndi:BPMNPlane id="Plane_OrderDiscount" bpmnElement="order-discount">
+      <bpmndi:BPMNShape id="start_di" bpmnElement="start"><dc:Bounds x="90" y="177" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="rule_di" bpmnElement="determine-discount"><dc:Bounds x="190" y="155" width="120" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="gateway_di" bpmnElement="discount-gateway" isMarkerVisible="true"><dc:Bounds x="370" y="170" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="apply_di" bpmnElement="apply-discount"><dc:Bounds x="500" y="70" width="110" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="no_di" bpmnElement="no-discount"><dc:Bounds x="500" y="250" width="110" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="end_di" bpmnElement="end"><dc:Bounds x="700" y="177" width="36" height="36" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="flow-start-rule_di" bpmnElement="flow-start-rule"><di:waypoint x="126" y="195" /><di:waypoint x="190" y="195" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-rule-gateway_di" bpmnElement="flow-rule-gateway"><di:waypoint x="310" y="195" /><di:waypoint x="370" y="195" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-apply_di" bpmnElement="flow-apply"><di:waypoint x="395" y="170" /><di:waypoint x="395" y="110" /><di:waypoint x="500" y="110" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-no-discount_di" bpmnElement="flow-no-discount"><di:waypoint x="395" y="220" /><di:waypoint x="395" y="290" /><di:waypoint x="500" y="290" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-apply-end_di" bpmnElement="flow-apply-end"><di:waypoint x="610" y="110" /><di:waypoint x="718" y="110" /><di:waypoint x="718" y="177" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="flow-no-end_di" bpmnElement="flow-no-end"><di:waypoint x="610" y="290" /><di:waypoint x="718" y="290" /><di:waypoint x="718" y="213" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

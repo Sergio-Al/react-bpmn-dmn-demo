@@ -1,0 +1,23 @@
+{
+  "contentType": "application/vnd.gorules.decision",
+  "nodes": [
+    { "id": "input", "type": "inputNode", "name": "Order", "position": { "x": 100, "y": 200 } },
+    {
+      "id": "discount", "type": "decisionTableNode", "name": "Order discount", "position": { "x": 400, "y": 200 },
+      "content": {
+        "hitPolicy": "first",
+        "inputs": [
+          { "id": "tier", "name": "Customer tier", "field": "customerTier" },
+          { "id": "total", "name": "Order total", "field": "orderTotal" }
+        ],
+        "outputs": [{ "id": "rate", "name": "Discount rate", "field": "discountRate" }],
+        "rules": [
+          { "_id": "gold-large", "tier": "\"gold\"", "total": ">= 100", "rate": "0.15" },
+          { "_id": "gold", "tier": "\"gold\"", "total": "", "rate": "0.10" },
+          { "_id": "default", "tier": "", "total": "", "rate": "0" }
+        ]
+      }
+    }
+  ],
+  "edges": [{ "id": "input-discount", "type": "edge", "sourceId": "input", "targetId": "discount" }]
+}

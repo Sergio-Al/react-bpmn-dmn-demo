@@ -23,33 +23,33 @@
     <bpmn:sequenceFlow id="e-no" sourceRef="no-action" targetRef="end"/><bpmn:sequenceFlow id="e-review" sourceRef="human-review" targetRef="end"/><bpmn:sequenceFlow id="e-retain" sourceRef="retention-visit" targetRef="end"/><bpmn:sequenceFlow id="e-upsell" sourceRef="upsell-followup" targetRef="end"/><bpmn:sequenceFlow id="e-account" sourceRef="account-followup" targetRef="end"/><bpmn:sequenceFlow id="e-collect" sourceRef="collection-followup" targetRef="end"/>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="Diagram_Crm"><bpmndi:BPMNPlane id="Plane_Crm" bpmnElement="crm-next-best-action">
-    <bpmndi:BPMNShape id="start_di" bpmnElement="start"><dc:Bounds x="80" y="322" width="36" height="36"/></bpmndi:BPMNShape>
-    <bpmndi:BPMNShape id="facts_di" bpmnElement="derive-facts"><dc:Bounds x="170" y="300" width="140" height="80"/></bpmndi:BPMNShape>
-    <bpmndi:BPMNShape id="jev_di" bpmnElement="assess-with-jev"><dc:Bounds x="370" y="300" width="140" height="80"/></bpmndi:BPMNShape>
-    <bpmndi:BPMNShape id="policy_di" bpmnElement="apply-policy"><dc:Bounds x="570" y="300" width="140" height="80"/></bpmndi:BPMNShape>
-    <bpmndi:BPMNShape id="gateway_di" bpmnElement="action-gateway" isMarkerVisible="true"><dc:Bounds x="770" y="315" width="50" height="50"/></bpmndi:BPMNShape>
-    <bpmndi:BPMNShape id="no_di" bpmnElement="no-action"><dc:Bounds x="920" y="40" width="140" height="80"/></bpmndi:BPMNShape>
-    <bpmndi:BPMNShape id="review_di" bpmnElement="human-review"><dc:Bounds x="920" y="170" width="140" height="80"/></bpmndi:BPMNShape>
-    <bpmndi:BPMNShape id="retain_di" bpmnElement="retention-visit"><dc:Bounds x="920" y="300" width="140" height="80"/></bpmndi:BPMNShape>
-    <bpmndi:BPMNShape id="upsell_di" bpmnElement="upsell-followup"><dc:Bounds x="920" y="430" width="140" height="80"/></bpmndi:BPMNShape>
-    <bpmndi:BPMNShape id="account_di" bpmnElement="account-followup"><dc:Bounds x="920" y="690" width="140" height="80"/></bpmndi:BPMNShape>
-    <bpmndi:BPMNShape id="collect_di" bpmnElement="collection-followup"><dc:Bounds x="920" y="560" width="140" height="80"/></bpmndi:BPMNShape>
-    <bpmndi:BPMNShape id="end_di" bpmnElement="end"><dc:Bounds x="1180" y="322" width="36" height="36"/></bpmndi:BPMNShape>
-    <bpmndi:BPMNEdge id="f1_di" bpmnElement="f1"><di:waypoint x="116" y="340"/><di:waypoint x="170" y="340"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="f2_di" bpmnElement="f2"><di:waypoint x="310" y="340"/><di:waypoint x="370" y="340"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="f3_di" bpmnElement="f3"><di:waypoint x="510" y="340"/><di:waypoint x="570" y="340"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="f4_di" bpmnElement="f4"><di:waypoint x="710" y="340"/><di:waypoint x="770" y="340"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="f-no_di" bpmnElement="f-no"><di:waypoint x="795" y="315"/><di:waypoint x="795" y="80"/><di:waypoint x="920" y="80"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="f-review_di" bpmnElement="f-review"><di:waypoint x="820" y="340"/><di:waypoint x="860" y="340"/><di:waypoint x="860" y="210"/><di:waypoint x="920" y="210"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="f-retain_di" bpmnElement="f-retain"><di:waypoint x="820" y="340"/><di:waypoint x="920" y="340"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="f-upsell_di" bpmnElement="f-upsell"><di:waypoint x="820" y="340"/><di:waypoint x="860" y="340"/><di:waypoint x="860" y="470"/><di:waypoint x="920" y="470"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="f-account_di" bpmnElement="f-account"><di:waypoint x="820" y="340"/><di:waypoint x="885" y="340"/><di:waypoint x="885" y="730"/><di:waypoint x="920" y="730"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="f-collect_di" bpmnElement="f-collect"><di:waypoint x="795" y="365"/><di:waypoint x="795" y="600"/><di:waypoint x="920" y="600"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="e-no_di" bpmnElement="e-no"><di:waypoint x="1060" y="80"/><di:waypoint x="1198" y="80"/><di:waypoint x="1198" y="322"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="e-review_di" bpmnElement="e-review"><di:waypoint x="1060" y="210"/><di:waypoint x="1140" y="210"/><di:waypoint x="1140" y="340"/><di:waypoint x="1180" y="340"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="e-retain_di" bpmnElement="e-retain"><di:waypoint x="1060" y="340"/><di:waypoint x="1180" y="340"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="e-upsell_di" bpmnElement="e-upsell"><di:waypoint x="1060" y="470"/><di:waypoint x="1140" y="470"/><di:waypoint x="1140" y="340"/><di:waypoint x="1180" y="340"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="e-account_di" bpmnElement="e-account"><di:waypoint x="1060" y="730"/><di:waypoint x="1240" y="730"/><di:waypoint x="1240" y="340"/><di:waypoint x="1216" y="340"/></bpmndi:BPMNEdge>
-    <bpmndi:BPMNEdge id="e-collect_di" bpmnElement="e-collect"><di:waypoint x="1060" y="600"/><di:waypoint x="1198" y="600"/><di:waypoint x="1198" y="358"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNShape id="start_di" bpmnElement="start"><dc:Bounds x="80" y="382" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="80" y="424" width="36" height="16"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="facts_di" bpmnElement="derive-facts"><dc:Bounds x="170" y="360" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="jev_di" bpmnElement="assess-with-jev"><dc:Bounds x="370" y="360" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="policy_di" bpmnElement="apply-policy"><dc:Bounds x="570" y="360" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="gateway_di" bpmnElement="action-gateway" isMarkerVisible="true"><dc:Bounds x="770" y="375" width="50" height="50"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="no_di" bpmnElement="no-action"><dc:Bounds x="1120" y="60" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="review_di" bpmnElement="human-review"><dc:Bounds x="1120" y="180" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="retain_di" bpmnElement="retention-visit"><dc:Bounds x="1120" y="300" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="upsell_di" bpmnElement="upsell-followup"><dc:Bounds x="1120" y="420" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="account_di" bpmnElement="account-followup"><dc:Bounds x="1120" y="540" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="collect_di" bpmnElement="collection-followup"><dc:Bounds x="1120" y="660" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="end_di" bpmnElement="end"><dc:Bounds x="1530" y="382" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="1530" y="424" width="36" height="16"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+    <bpmndi:BPMNEdge id="f1_di" bpmnElement="f1"><di:waypoint x="116" y="400"/><di:waypoint x="170" y="400"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f2_di" bpmnElement="f2"><di:waypoint x="310" y="400"/><di:waypoint x="370" y="400"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f3_di" bpmnElement="f3"><di:waypoint x="510" y="400"/><di:waypoint x="570" y="400"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f4_di" bpmnElement="f4"><di:waypoint x="710" y="400"/><di:waypoint x="770" y="400"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f-no_di" bpmnElement="f-no"><di:waypoint x="820" y="380"/><di:waypoint x="850" y="380"/><di:waypoint x="850" y="100"/><di:waypoint x="1120" y="100"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f-review_di" bpmnElement="f-review"><di:waypoint x="820" y="388"/><di:waypoint x="875" y="388"/><di:waypoint x="875" y="220"/><di:waypoint x="1120" y="220"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f-retain_di" bpmnElement="f-retain"><di:waypoint x="820" y="396"/><di:waypoint x="900" y="396"/><di:waypoint x="900" y="340"/><di:waypoint x="1120" y="340"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f-upsell_di" bpmnElement="f-upsell"><di:waypoint x="820" y="404"/><di:waypoint x="1000" y="404"/><di:waypoint x="1000" y="460"/><di:waypoint x="1120" y="460"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f-account_di" bpmnElement="f-account"><di:waypoint x="820" y="412"/><di:waypoint x="975" y="412"/><di:waypoint x="975" y="580"/><di:waypoint x="1120" y="580"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f-collect_di" bpmnElement="f-collect"><di:waypoint x="820" y="420"/><di:waypoint x="950" y="420"/><di:waypoint x="950" y="700"/><di:waypoint x="1120" y="700"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="e-no_di" bpmnElement="e-no"><di:waypoint x="1260" y="100"/><di:waypoint x="1370" y="100"/><di:waypoint x="1370" y="385"/><di:waypoint x="1530" y="385"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="e-review_di" bpmnElement="e-review"><di:waypoint x="1260" y="220"/><di:waypoint x="1345" y="220"/><di:waypoint x="1345" y="391"/><di:waypoint x="1530" y="391"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="e-retain_di" bpmnElement="e-retain"><di:waypoint x="1260" y="340"/><di:waypoint x="1320" y="340"/><di:waypoint x="1320" y="397"/><di:waypoint x="1530" y="397"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="e-upsell_di" bpmnElement="e-upsell"><di:waypoint x="1260" y="460"/><di:waypoint x="1320" y="460"/><di:waypoint x="1320" y="403"/><di:waypoint x="1530" y="403"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="e-account_di" bpmnElement="e-account"><di:waypoint x="1260" y="580"/><di:waypoint x="1345" y="580"/><di:waypoint x="1345" y="409"/><di:waypoint x="1530" y="409"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="e-collect_di" bpmnElement="e-collect"><di:waypoint x="1260" y="700"/><di:waypoint x="1370" y="700"/><di:waypoint x="1370" y="415"/><di:waypoint x="1530" y="415"/></bpmndi:BPMNEdge>
   </bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
 </bpmn:definitions>

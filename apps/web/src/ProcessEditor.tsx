@@ -13,7 +13,8 @@ export default function ProcessEditor({ xml, onSave, saveStatus, decisionKey, se
   const [localSaveError, setLocalSaveError] = useState('');
 
   const fitDiagram = useCallback(() => {
-    if (!modeler) return;
+    // A hidden or zero-sized container makes fit-viewport compute a non-finite scale.
+    if (!modeler || !host || host.clientWidth === 0 || host.clientHeight === 0) return;
     const canvas = modeler.get('canvas') as any;
     // Invalidate bpmn-js's cached outer viewbox before fitting a resized container.
     canvas.resized();
@@ -31,7 +32,7 @@ export default function ProcessEditor({ xml, onSave, saveStatus, decisionKey, se
       width: outer.width / scale,
       height: outer.height / scale,
     });
-  }, [modeler]);
+  }, [modeler, host]);
 
   useEffect(() => {
     if (!host) return;

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { api } from './api';
 
 const ProcessEditor = lazy(() => import('./ProcessEditor'));
@@ -8,6 +8,8 @@ const CrmShowcase = lazy(() => import('./CrmShowcase'));
 
 type Page = 'process' | 'decision' | 'send' | 'crm';
 type RunResult = { variables: Record<string, unknown>; path: Array<{ id: string; name: string }> };
+type ContractExample = { examples?: Record<string, unknown>[] };
+type CrmFixture = { payload: Record<string, unknown> };
 const allowedNodes = new Set(['inputNode', 'outputNode', 'decisionTableNode']);
 const nodeNames: Record<string, string> = { functionNode: 'Function', expressionNode: 'Expression', switchNode: 'Switch' };
 
@@ -20,7 +22,8 @@ export function App() {
   const [taskDecisionKey, setTaskDecisionKey] = useState('');
   const [xml, setXml] = useState('');
   const [graph, setGraph] = useState<any>(null);
-  const [variables, setVariables] = useState('{"customerTier":"gold","orderTotal":150}');
+  const [variables, setVariables] = useState('{"customerTier":"gold","orderTotal":150,"country":"US"}');
+  const inputRevision = useRef(0);
   const [result, setResult] = useState<RunResult | null>(null);
   const [processSaveStatus, setProcessSaveStatus] = useState('');
   const [decisionSaveStatus, setDecisionSaveStatus] = useState('');
@@ -33,6 +36,26 @@ export function App() {
   useEffect(() => {
     setProcessSaveStatus('');
     api<{ xml: string }>(`/processes/${processKey}`).then(data => { setXml(data.xml); setLoadStatus(''); }).catch(error => setLoadStatus(String(error)));
+  }, [processKey]);
+  useEffect(() => {
+    let cancelled = false;
+    const revision = inputRevision.current;
+    async function loadExample() {
+      let example: Record<string, unknown> = {};
+      if (processKey === 'crm-next-best-action') {
+        const fixtures = await api<CrmFixture[]>('/fixtures/crm-customer');
+        example = { ...(fixtures[0]?.payload ?? {}), mode: 'hybrid' };
+      } else if (processKey.startsWith('loan-')) {
+        const contract = await api<ContractExample>('/contracts/loan-application/1');
+        example = contract.examples?.[0] ?? {};
+      } else if (processKey.startsWith('order-') || processKey === 'high-value-order') {
+        const contract = await api<ContractExample>('/contracts/order/1');
+        example = { ...(contract.examples?.[0] ?? {}), ...(processKey === 'high-value-order' ? { orderTotal: 1200 } : {}) };
+      }
+      if (!cancelled && inputRevision.current === revision) setVariables(JSON.stringify(example, null, 2));
+    }
+    loadExample().catch(error => { if (!cancelled) setLoadStatus(String(error)); });
+    return () => { cancelled = true; };
   }, [processKey]);
   useEffect(() => {
     setDecisionSaveStatus('');
@@ -76,19 +99,28 @@ export function App() {
     } catch (error) { setRunStatus(String(error)); }
   }
 
+  function changeProcess(key: string) {
+    if (key === processKey) return;
+    inputRevision.current++;
+    setProcessKey(key);
+    setVariables('{}');
+    setResult(null);
+    setRunStatus('');
+  }
+
   return <div className="app-shell">
     <header><h1>BPMN + Decisions</h1><nav><button className={page === 'process' ? 'active' : ''} onClick={() => setPage('process')}>Process modeler</button><button className={page === 'decision' ? 'active' : ''} onClick={() => setPage('decision')}>Decision editor</button><button className={page === 'send' ? 'active' : ''} onClick={() => setPage('send')}>Send request</button><button className={page === 'crm' ? 'active' : ''} onClick={() => setPage('crm')}>CRM showcase</button></nav></header>
     <main className={page === 'send' ? 'send-layout' : page === 'crm' ? 'crm-layout' : ''}>
       {page === 'send' ? <Suspense fallback={<div className="editor-loading">Loading request form…</div>}><SendRequest /></Suspense> : <>
       {page === 'crm' ? <Suspense fallback={<div className="editor-loading">Loading CRM showcase…</div>}><CrmShowcase /></Suspense> : <>
       <section className="workspace">
-        <div className="bar"><label>{page === 'process' ? 'Process' : 'Decision'} <select value={page === 'process' ? processKey : decisionKey} onChange={event => page === 'process' ? setProcessKey(event.target.value) : setDecisionKey(event.target.value)}>{(page === 'process' ? processes : decisions).map(key => <option key={key}>{key}</option>)}</select></label>{page === 'decision' && <div className="save-actions"><span role="status">{decisionSaveStatus}</span><button onClick={saveDecision}>Save decision</button></div>}</div>
+        <div className="bar"><label>{page === 'process' ? 'Process' : 'Decision'} <select value={page === 'process' ? processKey : decisionKey} onChange={event => page === 'process' ? changeProcess(event.target.value) : setDecisionKey(event.target.value)}>{(page === 'process' ? processes : decisions).map(key => <option key={key}>{key}</option>)}</select></label>{page === 'decision' && <div className="save-actions"><span role="status">{decisionSaveStatus}</span><button onClick={saveDecision}>Save decision</button></div>}</div>
         {loadStatus && <p className="load-status" role="alert">{loadStatus}</p>}
         <Suspense fallback={<div className="editor-loading">Loading editor…</div>}>
           {page === 'process' ? <ProcessEditor xml={xml} onSave={saveProcess} saveStatus={processSaveStatus} decisionKey={taskDecisionKey} setDecisionKey={setTaskDecisionKey} /> : <DecisionEditor graph={graph} onChange={setGraph} />}
         </Suspense>
       </section>
-      <aside className="run-panel"><h2>Run process</h2><label>Input variables<textarea value={variables} onChange={event => setVariables(event.target.value)} spellCheck={false} /></label><button onClick={run}>Run</button>{runStatus && <p role="status">{runStatus}</p>}{result && <><h3>Path taken</h3><ol>{result.path.map((step, index) => <li key={`${step.id}-${index}`}>{step.name}</li>)}</ol><h3>Final variables</h3><pre>{JSON.stringify(result.variables, null, 2)}</pre></>}</aside>
+      <aside className="run-panel"><h2>Run process</h2><label>Input variables<textarea value={variables} onChange={event => { inputRevision.current++; setVariables(event.target.value); }} spellCheck={false} /></label><button onClick={run}>Run</button>{runStatus && <p role="status">{runStatus}</p>}{result && <><h3>Path taken</h3><ol>{result.path.map((step, index) => <li key={`${step.id}-${index}`}>{step.name}</li>)}</ol><h3>Final variables</h3><pre>{JSON.stringify(result.variables, null, 2)}</pre></>}</aside>
       </>}
       </>}
     </main>

@@ -1,0 +1,21 @@
+{
+  "contentType": "application/vnd.gorules.decision",
+  "nodes": [
+    { "id": "input", "type": "inputNode", "name": "Customer state", "position": { "x": 80, "y": 300 } },
+    { "id": "strategic", "type": "decisionTableNode", "name": "Strategic account", "position": { "x": 350, "y": 60 }, "content": { "hitPolicy": "first", "inputs": [{ "id": "segment", "field": "customer.segment" }, { "id": "revenue", "field": "customer.annualRevenue" }], "outputs": [{ "id": "fact", "field": "facts.strategicAccount" }], "rules": [{ "_id": "segment-a", "segment": "\"A\"", "revenue": "", "fact": "true" }, { "_id": "high-revenue", "segment": "", "revenue": ">= 250000", "fact": "true" }, { "_id": "default", "segment": "", "revenue": "", "fact": "false" }] } },
+    { "id": "declining", "type": "decisionTableNode", "name": "Sales declining", "position": { "x": 350, "y": 220 }, "content": { "hitPolicy": "first", "inputs": [{ "id": "trend", "field": "sales.trend90Days" }], "outputs": [{ "id": "fact", "field": "facts.salesDeclining" }], "rules": [{ "_id": "decline", "trend": "< -20", "fact": "true" }, { "_id": "default", "trend": "", "fact": "false" }] } },
+    { "id": "visit", "type": "decisionTableNode", "name": "Visit overdue", "position": { "x": 350, "y": 380 }, "content": { "hitPolicy": "first", "inputs": [{ "id": "days", "field": "activity.daysSinceLastVisit" }], "outputs": [{ "id": "fact", "field": "facts.visitOverdue" }], "rules": [{ "_id": "overdue", "days": "> 30", "fact": "true" }, { "_id": "default", "days": "", "fact": "false" }] } },
+    { "id": "payment", "type": "decisionTableNode", "name": "Payment problem", "position": { "x": 350, "y": 540 }, "content": { "hitPolicy": "first", "inputs": [{ "id": "overdue", "field": "payments.overdueInvoices" }], "outputs": [{ "id": "fact", "field": "facts.paymentProblem" }], "rules": [{ "_id": "problem", "overdue": "> 0", "fact": "true" }, { "_id": "default", "overdue": "", "fact": "false" }] } },
+    { "id": "output", "type": "outputNode", "name": "Facts", "position": { "x": 680, "y": 300 } }
+  ],
+  "edges": [
+    { "id": "e1", "type": "edge", "sourceId": "input", "targetId": "strategic" },
+    { "id": "e2", "type": "edge", "sourceId": "input", "targetId": "declining" },
+    { "id": "e3", "type": "edge", "sourceId": "input", "targetId": "visit" },
+    { "id": "e4", "type": "edge", "sourceId": "input", "targetId": "payment" },
+    { "id": "e5", "type": "edge", "sourceId": "strategic", "targetId": "output" },
+    { "id": "e6", "type": "edge", "sourceId": "declining", "targetId": "output" },
+    { "id": "e7", "type": "edge", "sourceId": "visit", "targetId": "output" },
+    { "id": "e8", "type": "edge", "sourceId": "payment", "targetId": "output" }
+  ]
+}

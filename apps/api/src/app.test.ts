@@ -15,6 +15,8 @@ test('API runs the order discount process through both gateway paths', async () 
     assert.equal(gold.json().variables.discountRate, 0.15);
     assert.equal(gold.json().variables.discountedTotal, 127.5);
     assert.ok(gold.json().path.some((step: { id: string }) => step.id === 'apply-discount'));
+    assert.deepEqual(gold.json().variables.trace.map((step: { step: string }) => step.step), ['ZEN', 'BPMN']);
+    assert.equal(gold.json().variables.trace[0].decision, 'order-discount');
 
     const silver = await app.inject({ method: 'POST', url: '/processes/order-discount/start', payload: { variables: { customerTier: 'silver', orderTotal: 150 } } });
     assert.equal(silver.statusCode, 200, silver.body);

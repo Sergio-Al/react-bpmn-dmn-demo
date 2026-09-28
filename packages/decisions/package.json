@@ -7,7 +7,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "npm run build && node --test dist/*.test.js"
+    "test": "npm run build && node --test dist/*.test.js dist/jev/jev.test.js",
+    "test:live": "npm run build && node --env-file-if-exists=../../.env --test dist/jev/live.test.js"
   },
   "dependencies": { "@gorules/zen-engine": "^2.0.2" },
   "devDependencies": { "typescript": "^5.9.3", "@types/node": "^24.10.0" }

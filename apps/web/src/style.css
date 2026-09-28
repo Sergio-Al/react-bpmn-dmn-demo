@@ -29,9 +29,54 @@ select, input { padding: .45rem; margin-left: .5rem; border: 1px solid #bdc8dc; 
 .send-form .envelope-label { display: block; margin-top: 1rem; }
 .send-form textarea { min-height: 300px; }
 .send-result pre { max-height: 40vh; overflow: auto; }
+.crm-layout { display: block; overflow: auto; }
+.crm-page { max-width: 1500px; margin: 0 auto; padding-bottom: 1rem; }
+.crm-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+.crm-header h2 { margin-bottom: .3rem; }
+.crm-header p, .crm-scenario-description { color: #526684; margin: .3rem 0 .8rem; }
+.crm-controls { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+.crm-controls label { white-space: nowrap; }
+.crm-controls select { max-width: 220px; }
+.crm-status { color: #526684; }
+.crm-errors { padding: .5rem 1rem; border: 1px solid #d99e9e; background: #fff4f4; border-radius: 8px; }
+.crm-panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; align-items: start; }
+.crm-panel { min-width: 0; padding: 1.2rem; border: 1px solid #d9e0ec; border-radius: 8px; background: white; }
+.crm-panel-heading, .crm-notes-heading { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.crm-panel-heading h2, .crm-notes-heading h3 { margin: 0; }
+.crm-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem 1rem; }
+.crm-details div { min-width: 0; }
+.crm-details dt { color: #60708b; font-size: .83rem; }
+.crm-details dd { margin: .2rem 0 0; overflow-wrap: anywhere; }
+.crm-notes-heading { margin-top: 1.2rem; }
+.crm-note { display: flex; align-items: flex-end; gap: .6rem; margin-top: .5rem; }
+.crm-note label { flex: 1; min-width: 0; font-size: .83rem; color: #526684; }
+.crm-note textarea { min-height: 70px; margin: .3rem 0 0; font-size: .9rem; }
+.crm-note button { flex: none; margin-bottom: .1rem; }
+.crm-facts { padding: 0; margin: 1rem 0 0; list-style: none; }
+.crm-facts li { display: flex; gap: .6rem; align-items: center; padding: .45rem 0; border-bottom: 1px solid #edf0f5; }
+.crm-yes { color: #20734d; font-weight: 700; }
+.crm-no { color: #9b4b4b; font-weight: 700; }
+.crm-banner { padding: .65rem .8rem; border-radius: 6px; background: #edf3ff; color: #274b83; }
+.crm-warning { background: #fff2e9; color: #85451e; }
+.crm-mock-badge { display: inline-block; margin-right: .5rem; padding: .15rem .4rem; border-radius: 4px; background: #274b83; color: white; font-size: .75rem; letter-spacing: .04em; }
+.crm-caption { color: #60708b; font-size: .85rem; }
+.crm-probability { margin: .8rem 0; }
+.crm-probability div { display: flex; justify-content: space-between; gap: 1rem; }
+.crm-probability progress { width: 100%; height: 1rem; accent-color: #4276d4; }
+.crm-trace { padding-left: 1.5rem; }
+.crm-trace li { padding: .2rem 0 .7rem .3rem; }
+.crm-trace li div { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin-top: .4rem; }
+.crm-trace p { margin: .35rem 0 0; overflow-wrap: anywhere; }
+.crm-compare { margin-bottom: 1rem; }
+.crm-table-scroll { overflow-x: auto; }
+.crm-compare table { width: 100%; border-collapse: collapse; text-align: left; }
+.crm-compare th, .crm-compare td { padding: .6rem .75rem; border-bottom: 1px solid #e3e7ef; vertical-align: top; }
+.crm-compare thead { background: #f4f6fa; }
+.crm-compare tbody th { font-weight: 500; }
 h2 { margin-top: 0; font-size: 1.1rem; }
 h3 { font-size: .95rem; margin-bottom: .4rem; }
 textarea { display: block; width: 100%; min-height: 130px; margin: .5rem 0; border: 1px solid #bdc8dc; border-radius: 4px; padding: .6rem; font-family: ui-monospace, monospace; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f4f6fa; padding: .7rem; }
 li { margin-bottom: .3rem; }
 @media (max-width: 850px) { main { grid-template-columns: 1fr; height: auto; }.workspace { height: 65vh; }.run-panel { max-height: none; }.send-page { grid-template-columns: 1fr; } }
+@media (max-width: 850px) { .crm-panels { grid-template-columns: 1fr; }.crm-layout { height: auto; }.crm-controls { width: 100%; } }

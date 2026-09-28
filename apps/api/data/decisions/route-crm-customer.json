@@ -1,0 +1,10 @@
+{
+  "contentType": "application/vnd.gorules.decision",
+  "nodes": [
+    { "id": "input", "type": "inputNode", "name": "CRM customer", "position": { "x": 100, "y": 200 } },
+    { "id": "route", "type": "decisionTableNode", "name": "Route CRM customer", "position": { "x": 400, "y": 200 },
+      "content": { "hitPolicy": "first", "inputs": [], "outputs": [{ "id": "process", "name": "Process key", "field": "processKey" }],
+        "rules": [{ "_id": "crm", "process": "\"crm-next-best-action\"" }] } }
+  ],
+  "edges": [{ "id": "input-route", "type": "edge", "sourceId": "input", "targetId": "route" }]
+}

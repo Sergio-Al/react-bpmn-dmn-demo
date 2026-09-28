@@ -1,14 +1,14 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { Engine } from 'bpmn-engine';
-import { ZenDecisionService } from '@app/decisions';
+import { createJevAssessor, type JevAssessor, ZenDecisionService } from '@app/decisions';
 import { getModel, listModels, saveModel } from './store.js';
-import { runProcess } from './process.js';
+import { crmRunLog, runProcess } from './process.js';
 import { validatePortableDecision } from './portable-decision.js';
 import { badRequest, ClientError } from './errors.js';
 import { registerRequestRoutes } from './requests.js';
 
-export function buildApp() {
+export function buildApp(options: { assessor?: JevAssessor; logCrmRun?: (entry: Record<string, unknown>) => void } = {}) {
   const app = Fastify({ logger: false });
   app.register(cors, { origin: true });
   app.setErrorHandler((error, _request, reply) => {
@@ -23,7 +23,10 @@ export function buildApp() {
     if (key.startsWith('route-')) validatePortableDecision(graph);
     return graph;
   });
-  registerRequestRoutes(app, decisions);
+  const assessor = options.assessor ?? createJevAssessor({
+    apiKey: process.env.JEV_API_KEY, model: process.env.JEV_MODEL, mode: process.env.JEV_MODE === 'mock' ? 'mock' : 'live',
+  });
+  registerRequestRoutes(app, decisions, { assessor, logCrmRun: options.logCrmRun });
 
   app.get('/health', async () => ({ ok: true }));
   app.get('/processes', async () => listModels('processes'));
@@ -40,7 +43,11 @@ export function buildApp() {
   });
   app.post<{ Params: { id: string }; Body: { variables: Record<string, unknown> } }>('/processes/:id/start', async request => {
     if (!request.body || typeof request.body !== 'object' || Array.isArray(request.body) || !request.body.variables || typeof request.body.variables !== 'object' || Array.isArray(request.body.variables)) throw badRequest('Expected variables object');
-    return runProcess(await getModel('processes', request.params.id), request.body.variables, decisions);
+    const result = await runProcess(await getModel('processes', request.params.id), request.body.variables, decisions, { assessor });
+    if (request.params.id === 'crm-next-best-action') {
+      (options.logCrmRun ?? (value => console.info(JSON.stringify(value))))(crmRunLog(result));
+    }
+    return result;
   });
   app.get('/decisions', async () => listModels('decisions'));
   app.get<{ Params: { id: string } }>('/decisions/:id', async request => JSON.parse(await getModel('decisions', request.params.id)));

@@ -1,4 +1,5 @@
 import { ZenEngine } from '@gorules/zen-engine';
+export * from './jev/index.js';
 
 export interface DecisionService {
   evaluate(decisionKey: string, input: Record<string, unknown>): Promise<Record<string, unknown>>;

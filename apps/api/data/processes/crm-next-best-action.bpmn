@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_Crm" targetNamespace="https://example.org/crm-next-best-action">
+  <bpmn:process id="crm-next-best-action" name="CRM next best action" isExecutable="true">
+    <bpmn:startEvent id="start" name="Start"><bpmn:outgoing>f1</bpmn:outgoing></bpmn:startEvent>
+    <bpmn:businessRuleTask id="derive-facts" name="Derive customer facts" camunda:decisionRef="crm-customer-facts" implementation="${environment.services.evaluateDecision}"><bpmn:incoming>f1</bpmn:incoming><bpmn:outgoing>f2</bpmn:outgoing></bpmn:businessRuleTask>
+    <bpmn:serviceTask id="assess-with-jev" name="Assess with Jev" implementation="${environment.services.assessWithJev}"><bpmn:incoming>f2</bpmn:incoming><bpmn:outgoing>f3</bpmn:outgoing></bpmn:serviceTask>
+    <bpmn:businessRuleTask id="apply-policy" name="Apply policy" camunda:decisionRef="crm-policy" implementation="${environment.services.evaluateDecision}"><bpmn:incoming>f3</bpmn:incoming><bpmn:outgoing>f4</bpmn:outgoing></bpmn:businessRuleTask>
+    <bpmn:exclusiveGateway id="action-gateway" name="Next action" default="f-no"><bpmn:incoming>f4</bpmn:incoming><bpmn:outgoing>f-no</bpmn:outgoing><bpmn:outgoing>f-review</bpmn:outgoing><bpmn:outgoing>f-retain</bpmn:outgoing><bpmn:outgoing>f-upsell</bpmn:outgoing><bpmn:outgoing>f-account</bpmn:outgoing><bpmn:outgoing>f-collect</bpmn:outgoing></bpmn:exclusiveGateway>
+    <bpmn:task id="no-action" name="No action"><bpmn:incoming>f-no</bpmn:incoming><bpmn:outgoing>e-no</bpmn:outgoing></bpmn:task>
+    <bpmn:serviceTask id="human-review" name="Human review" implementation="${environment.services.recordCrmAction}"><bpmn:incoming>f-review</bpmn:incoming><bpmn:outgoing>e-review</bpmn:outgoing></bpmn:serviceTask>
+    <bpmn:serviceTask id="retention-visit" name="Retention visit" implementation="${environment.services.recordCrmAction}"><bpmn:incoming>f-retain</bpmn:incoming><bpmn:outgoing>e-retain</bpmn:outgoing></bpmn:serviceTask>
+    <bpmn:serviceTask id="upsell-followup" name="Upsell follow-up" implementation="${environment.services.recordCrmAction}"><bpmn:incoming>f-upsell</bpmn:incoming><bpmn:outgoing>e-upsell</bpmn:outgoing></bpmn:serviceTask>
+    <bpmn:serviceTask id="account-followup" name="Account follow-up" implementation="${environment.services.recordCrmAction}"><bpmn:incoming>f-account</bpmn:incoming><bpmn:outgoing>e-account</bpmn:outgoing></bpmn:serviceTask>
+    <bpmn:serviceTask id="collection-followup" name="Collection follow-up" implementation="${environment.services.recordCrmAction}"><bpmn:incoming>f-collect</bpmn:incoming><bpmn:outgoing>e-collect</bpmn:outgoing></bpmn:serviceTask>
+    <bpmn:endEvent id="end" name="End"><bpmn:incoming>e-no</bpmn:incoming><bpmn:incoming>e-review</bpmn:incoming><bpmn:incoming>e-retain</bpmn:incoming><bpmn:incoming>e-upsell</bpmn:incoming><bpmn:incoming>e-account</bpmn:incoming><bpmn:incoming>e-collect</bpmn:incoming></bpmn:endEvent>
+    <bpmn:sequenceFlow id="f1" sourceRef="start" targetRef="derive-facts"/><bpmn:sequenceFlow id="f2" sourceRef="derive-facts" targetRef="assess-with-jev"/><bpmn:sequenceFlow id="f3" sourceRef="assess-with-jev" targetRef="apply-policy"/><bpmn:sequenceFlow id="f4" sourceRef="apply-policy" targetRef="action-gateway"/>
+    <bpmn:sequenceFlow id="f-no" sourceRef="action-gateway" targetRef="no-action"/>
+    <bpmn:sequenceFlow id="f-review" sourceRef="action-gateway" targetRef="human-review"><bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="javascript">next(null, environment.variables.policy.nextAction === 'HUMAN_REVIEW')</bpmn:conditionExpression></bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f-retain" sourceRef="action-gateway" targetRef="retention-visit"><bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="javascript">next(null, environment.variables.policy.nextAction === 'CREATE_RETENTION_VISIT')</bpmn:conditionExpression></bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f-upsell" sourceRef="action-gateway" targetRef="upsell-followup"><bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="javascript">next(null, environment.variables.policy.nextAction === 'CREATE_UPSELL_FOLLOWUP')</bpmn:conditionExpression></bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f-account" sourceRef="action-gateway" targetRef="account-followup"><bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="javascript">next(null, environment.variables.policy.nextAction === 'CREATE_ACCOUNT_FOLLOWUP')</bpmn:conditionExpression></bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f-collect" sourceRef="action-gateway" targetRef="collection-followup"><bpmn:conditionExpression xsi:type="bpmn:tFormalExpression" language="javascript">next(null, environment.variables.policy.nextAction === 'COLLECTION_FOLLOWUP')</bpmn:conditionExpression></bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="e-no" sourceRef="no-action" targetRef="end"/><bpmn:sequenceFlow id="e-review" sourceRef="human-review" targetRef="end"/><bpmn:sequenceFlow id="e-retain" sourceRef="retention-visit" targetRef="end"/><bpmn:sequenceFlow id="e-upsell" sourceRef="upsell-followup" targetRef="end"/><bpmn:sequenceFlow id="e-account" sourceRef="account-followup" targetRef="end"/><bpmn:sequenceFlow id="e-collect" sourceRef="collection-followup" targetRef="end"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_Crm"><bpmndi:BPMNPlane id="Plane_Crm" bpmnElement="crm-next-best-action">
+    <bpmndi:BPMNShape id="start_di" bpmnElement="start"><dc:Bounds x="80" y="382" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="80" y="424" width="36" height="16"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="facts_di" bpmnElement="derive-facts"><dc:Bounds x="170" y="360" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="jev_di" bpmnElement="assess-with-jev"><dc:Bounds x="370" y="360" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="policy_di" bpmnElement="apply-policy"><dc:Bounds x="570" y="360" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="gateway_di" bpmnElement="action-gateway" isMarkerVisible="true"><dc:Bounds x="770" y="375" width="50" height="50"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="no_di" bpmnElement="no-action"><dc:Bounds x="1120" y="60" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="review_di" bpmnElement="human-review"><dc:Bounds x="1120" y="180" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="retain_di" bpmnElement="retention-visit"><dc:Bounds x="1120" y="300" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="upsell_di" bpmnElement="upsell-followup"><dc:Bounds x="1120" y="420" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="account_di" bpmnElement="account-followup"><dc:Bounds x="1120" y="540" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="collect_di" bpmnElement="collection-followup"><dc:Bounds x="1120" y="660" width="140" height="80"/></bpmndi:BPMNShape>
+    <bpmndi:BPMNShape id="end_di" bpmnElement="end"><dc:Bounds x="1530" y="382" width="36" height="36"/><bpmndi:BPMNLabel><dc:Bounds x="1530" y="424" width="36" height="16"/></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+    <bpmndi:BPMNEdge id="f1_di" bpmnElement="f1"><di:waypoint x="116" y="400"/><di:waypoint x="170" y="400"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f2_di" bpmnElement="f2"><di:waypoint x="310" y="400"/><di:waypoint x="370" y="400"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f3_di" bpmnElement="f3"><di:waypoint x="510" y="400"/><di:waypoint x="570" y="400"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f4_di" bpmnElement="f4"><di:waypoint x="710" y="400"/><di:waypoint x="770" y="400"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f-no_di" bpmnElement="f-no"><di:waypoint x="820" y="380"/><di:waypoint x="850" y="380"/><di:waypoint x="850" y="100"/><di:waypoint x="1120" y="100"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f-review_di" bpmnElement="f-review"><di:waypoint x="820" y="388"/><di:waypoint x="875" y="388"/><di:waypoint x="875" y="220"/><di:waypoint x="1120" y="220"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f-retain_di" bpmnElement="f-retain"><di:waypoint x="820" y="396"/><di:waypoint x="900" y="396"/><di:waypoint x="900" y="340"/><di:waypoint x="1120" y="340"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f-upsell_di" bpmnElement="f-upsell"><di:waypoint x="820" y="404"/><di:waypoint x="1000" y="404"/><di:waypoint x="1000" y="460"/><di:waypoint x="1120" y="460"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f-account_di" bpmnElement="f-account"><di:waypoint x="820" y="412"/><di:waypoint x="975" y="412"/><di:waypoint x="975" y="580"/><di:waypoint x="1120" y="580"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="f-collect_di" bpmnElement="f-collect"><di:waypoint x="820" y="420"/><di:waypoint x="950" y="420"/><di:waypoint x="950" y="700"/><di:waypoint x="1120" y="700"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="e-no_di" bpmnElement="e-no"><di:waypoint x="1260" y="100"/><di:waypoint x="1370" y="100"/><di:waypoint x="1370" y="385"/><di:waypoint x="1530" y="385"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="e-review_di" bpmnElement="e-review"><di:waypoint x="1260" y="220"/><di:waypoint x="1345" y="220"/><di:waypoint x="1345" y="391"/><di:waypoint x="1530" y="391"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="e-retain_di" bpmnElement="e-retain"><di:waypoint x="1260" y="340"/><di:waypoint x="1320" y="340"/><di:waypoint x="1320" y="397"/><di:waypoint x="1530" y="397"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="e-upsell_di" bpmnElement="e-upsell"><di:waypoint x="1260" y="460"/><di:waypoint x="1320" y="460"/><di:waypoint x="1320" y="403"/><di:waypoint x="1530" y="403"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="e-account_di" bpmnElement="e-account"><di:waypoint x="1260" y="580"/><di:waypoint x="1345" y="580"/><di:waypoint x="1345" y="409"/><di:waypoint x="1530" y="409"/></bpmndi:BPMNEdge>
+    <bpmndi:BPMNEdge id="e-collect_di" bpmnElement="e-collect"><di:waypoint x="1260" y="700"/><di:waypoint x="1370" y="700"/><di:waypoint x="1370" y="415"/><di:waypoint x="1530" y="415"/></bpmndi:BPMNEdge>
+  </bpmndi:BPMNPlane></bpmndi:BPMNDiagram>
+</bpmn:definitions>

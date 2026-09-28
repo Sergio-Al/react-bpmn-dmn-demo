@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "npm run build --workspace @app/decisions && (npm run dev --workspace @app/api & npm run dev --workspace @app/web & wait)",
     "test": "npm run test --workspace @app/decisions && npm run test --workspace @app/api",
+    "test:live": "npm run test:live --workspace @app/decisions",
     "build": "npm run build --workspace @app/decisions && npm run build --workspace @app/api && npm run build --workspace @app/web"
   }
 }

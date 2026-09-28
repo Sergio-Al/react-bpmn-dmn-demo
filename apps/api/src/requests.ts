@@ -1,10 +1,14 @@
 import { Ajv, type ErrorObject, type SchemaObject, type ValidateFunction } from 'ajv';
 import type { FastifyInstance } from 'fastify';
 import type { DecisionService } from '@app/decisions';
+import type { JevAssessor } from '@app/decisions';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { defaultContractsRoot, getContract, getContractMtime, listContracts } from './contracts.js';
-import { getModel } from './store.js';
-import { runProcess } from './process.js';
+import { dataDir, getModel } from './store.js';
+import { crmRunLog, runProcess } from './process.js';
 import { ClientError, notFound } from './errors.js';
+import type { ServiceDependencies } from './services/index.js';
 
 interface RequestEnvelope {
   requestId: string;
@@ -41,7 +45,7 @@ const routingFailure = () => ({ code: 'ROUTING_ERROR', message: 'Routing decisio
 export function registerRequestRoutes(
   app: FastifyInstance,
   decisions: DecisionService,
-  options: { contractsRoot?: string; ajv?: Ajv } = {},
+  options: { contractsRoot?: string; ajv?: Ajv; assessor?: JevAssessor; logCrmRun?: (entry: Record<string, unknown>) => void } = {},
 ): void {
   const ajv = options.ajv ?? new Ajv({ allErrors: true, strict: true });
   const contractsRoot = options.contractsRoot ?? defaultContractsRoot;
@@ -75,6 +79,11 @@ export function registerRequestRoutes(
   }
 
   app.get('/contracts', async () => listContracts(contractsRoot));
+  app.get<{ Params: { type: string } }>('/fixtures/:type', async request => {
+    if (!/^[a-z0-9][a-z0-9-]*$/.test(request.params.type)) throw notFound('Fixture type was not found');
+    try { return JSON.parse(await readFile(join(dataDir, 'fixtures', `${request.params.type}.json`), 'utf8')); }
+    catch (error) { if ((error as NodeJS.ErrnoException).code === 'ENOENT') throw notFound('Fixture type was not found'); throw error; }
+  });
   app.get<{ Params: { type: string; version: string } }>('/contracts/:type/:version', async (request) => {
     const version = Number(request.params.version);
     const contract = await getContract(request.params.type, version, contractsRoot);
@@ -116,7 +125,11 @@ export function registerRequestRoutes(
     const variables = { ...envelope.payload, ...extraVariables, request: {
       requestId: envelope.requestId, type: envelope.type, version: envelope.version,
     } };
-    const result = await runProcess(source, variables, decisions);
+    const deps: ServiceDependencies | undefined = options.assessor ? { assessor: options.assessor } : undefined;
+    const result = await runProcess(source, variables, decisions, deps);
+    if (envelope.type === 'crm-customer') {
+      (options.logCrmRun ?? (value => console.info(JSON.stringify(value))))(crmRunLog(result, envelope.requestId));
+    }
     return { requestId: envelope.requestId, type: envelope.type, version: envelope.version, processKey, ...result };
   });
 }

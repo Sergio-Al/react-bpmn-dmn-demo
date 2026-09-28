@@ -1,0 +1,32 @@
+{
+  "contentType": "application/vnd.gorules.decision",
+  "nodes": [
+    { "id": "input", "type": "inputNode", "name": "Facts and signals", "position": { "x": 100, "y": 200 } },
+    { "id": "policy", "type": "decisionTableNode", "name": "CRM policy", "position": { "x": 400, "y": 200 }, "content": {
+      "hitPolicy": "first",
+      "inputs": [
+        { "id": "payment", "field": "facts.paymentProblem" }, { "id": "active", "field": "customer.active" },
+        { "id": "mode", "field": "mode" }, { "id": "strategic", "field": "facts.strategicAccount" },
+        { "id": "declining", "field": "facts.salesDeclining" }, { "id": "status", "field": "jev.status" },
+        { "id": "switching", "field": "jev.switchingRisk" }, { "id": "attention", "field": "jev.needsAttention" },
+        { "id": "objective", "field": "jev.objective" }, { "id": "probability", "field": "jev.objectiveProbability" },
+        { "id": "confidence", "field": "jev.objectiveConfidence" }
+      ],
+      "outputs": [{ "id": "action", "field": "policy.nextAction" }, { "id": "rule", "field": "policy.rule" }],
+      "rules": [
+        { "_id": "payment", "payment": "true", "active": "", "mode": "", "strategic": "", "declining": "", "status": "", "switching": "", "attention": "", "objective": "", "probability": "", "confidence": "", "action": "\"COLLECTION_FOLLOWUP\"", "rule": "\"PAYMENT_DELINQUENCY\"" },
+        { "_id": "inactive", "payment": "", "active": "false", "mode": "", "strategic": "", "declining": "", "status": "", "switching": "", "attention": "", "objective": "", "probability": "", "confidence": "", "action": "\"NO_ACTION\"", "rule": "\"INACTIVE_ACCOUNT\"" },
+        { "_id": "rules-risk", "payment": "", "active": "", "mode": "\"rules-only\"", "strategic": "true", "declining": "true", "status": "", "switching": "", "attention": "", "objective": "", "probability": "", "confidence": "", "action": "\"HUMAN_REVIEW\"", "rule": "\"RULES_ONLY_RISK_UNCLEAR\"" },
+        { "_id": "rules-default", "payment": "", "active": "", "mode": "\"rules-only\"", "strategic": "", "declining": "", "status": "", "switching": "", "attention": "", "objective": "", "probability": "", "confidence": "", "action": "\"NO_ACTION\"", "rule": "\"RULES_ONLY_NO_SIGNAL\"" },
+        { "_id": "unavailable", "payment": "", "active": "", "mode": "", "strategic": "", "declining": "", "status": "\"unavailable\"", "switching": "", "attention": "", "objective": "", "probability": "", "confidence": "", "action": "\"HUMAN_REVIEW\"", "rule": "\"JEV_UNAVAILABLE\"" },
+        { "_id": "retention", "payment": "", "active": "", "mode": "", "strategic": "true", "declining": "", "status": "", "switching": ">= 0.8", "attention": ">= 0.85", "objective": "", "probability": "", "confidence": "", "action": "\"CREATE_RETENTION_VISIT\"", "rule": "\"RETENTION_STRATEGIC_ACCOUNT\"" },
+        { "_id": "ambiguous", "payment": "", "active": "", "mode": "", "strategic": "", "declining": "", "status": "", "switching": ">= 0.4", "attention": "", "objective": "", "probability": "", "confidence": "", "action": "\"HUMAN_REVIEW\"", "rule": "\"AMBIGUOUS_SWITCHING_RISK\"" },
+        { "_id": "upsell", "payment": "", "active": "", "mode": "", "strategic": "", "declining": "", "status": "", "switching": "", "attention": "", "objective": "\"UPSELL\"", "probability": ">= 0.8", "confidence": ">= 0.5", "action": "\"CREATE_UPSELL_FOLLOWUP\"", "rule": "\"UPSELL_CONFIDENT\"" },
+        { "_id": "strategic-decline", "payment": "", "active": "", "mode": "", "strategic": "true", "declining": "true", "status": "", "switching": "", "attention": "", "objective": "", "probability": "", "confidence": "", "action": "\"CREATE_ACCOUNT_FOLLOWUP\"", "rule": "\"STRATEGIC_DECLINE_FOLLOWUP\"" },
+        { "_id": "no-attention", "payment": "", "active": "", "mode": "", "strategic": "", "declining": "", "status": "", "switching": "", "attention": "< 0.5", "objective": "", "probability": "", "confidence": "", "action": "\"NO_ACTION\"", "rule": "\"NO_ATTENTION_NEEDED\"" },
+        { "_id": "default", "payment": "", "active": "", "mode": "", "strategic": "", "declining": "", "status": "", "switching": "", "attention": "", "objective": "", "probability": "", "confidence": "", "action": "\"HUMAN_REVIEW\"", "rule": "\"NO_POLICY_MATCH\"" }
+      ]
+    } }
+  ],
+  "edges": [{ "id": "input-policy", "type": "edge", "sourceId": "input", "targetId": "policy" }]
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "healthy", "title": "Healthy account", "description": "Stable relationship with no immediate signal.",
+    "payload": { "mode": "rules-only", "customer": { "id": "healthy-customer", "name": "Pacific Foods", "segment": "B", "annualRevenue": 120000, "active": true }, "sales": { "trend90Days": 5, "daysSinceLastOrder": 7 }, "payments": { "overdueInvoices": 0, "overdueAmount": 0 }, "activity": { "daysSinceLastVisit": 10 }, "notes": ["The customer confirmed they are satisfied with delivery reliability and product quality.", "Purchasing renewed the supply agreement for another year.", "The account manager reports a constructive relationship and steady order plans."] }
+  },
+  {
+    "id": "churn", "title": "Andes Retail switching risk", "description": "Strategic account showing signs of supplier switching.",
+    "payload": { "mode": "hybrid", "customer": { "id": "andes-retail", "name": "Andes Retail", "segment": "A", "annualRevenue": 400000, "active": true }, "sales": { "trend90Days": -35, "daysSinceLastOrder": 40 }, "payments": { "overdueInvoices": 0, "overdueAmount": 0 }, "activity": { "daysSinceLastVisit": 55 }, "notes": ["The customer said a competitor offered better commercial conditions.", "Purchasing is evaluating alternative suppliers for next quarter."] }
+  },
+  {
+    "id": "upsell", "title": "Upsell opportunity", "description": "Growing account with interest in additional products.",
+    "payload": { "mode": "hybrid", "customer": { "id": "upsell-customer", "name": "Altiplano Markets", "segment": "B", "annualRevenue": 180000, "active": true }, "sales": { "trend90Days": 30, "daysSinceLastOrder": 5 }, "payments": { "overdueInvoices": 0, "overdueAmount": 0 }, "activity": { "daysSinceLastVisit": 12 }, "notes": ["The buyer asked for pricing on two additional product lines.", "A new store opening next quarter will require higher volumes.", "The customer is satisfied with current service and has no overdue balance."] }
+  },
+  {
+    "id": "payment", "title": "Payment issue", "description": "Overdue invoices take precedence over other signals.",
+    "payload": { "mode": "hybrid", "customer": { "id": "payment-customer", "name": "Valley Supply", "segment": "C", "annualRevenue": 90000, "active": true }, "sales": { "trend90Days": -5, "daysSinceLastOrder": 25 }, "payments": { "overdueInvoices": 2, "overdueAmount": 7000 }, "activity": { "daysSinceLastVisit": 28 }, "notes": ["Two invoices remain unpaid after their due dates.", "Accounts payable acknowledged the balance but has not committed to a payment date.", "The buyer wants to continue ordering once the balance is resolved."] }
+  },
+  {
+    "id": "ambiguous", "title": "Ambiguous signals", "description": "Conflicting information calls for human review.",
+    "payload": { "mode": "hybrid", "customer": { "id": "ambiguous-customer", "name": "North Star Stores", "segment": "B", "annualRevenue": 170000, "active": true }, "sales": { "trend90Days": -10, "daysSinceLastOrder": 18 }, "payments": { "overdueInvoices": 0, "overdueAmount": 0 }, "activity": { "daysSinceLastVisit": 35 }, "notes": ["Purchasing asked whether prices can be held for the next quarter and mentioned comparing market offers.", "The same buyer said they value our reliable deliveries and intend to renew the relationship.", "No supplier change has been approved, but the next purchase forecast remains uncertain."] }
+  }
+]

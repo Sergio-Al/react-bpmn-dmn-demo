@@ -1,0 +1,32 @@
+{
+  "type": "object", "additionalProperties": false,
+  "required": ["mode", "customer", "sales", "payments", "activity", "notes"],
+  "properties": {
+    "mode": { "type": "string", "enum": ["rules-only", "hybrid"] },
+    "customer": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "name", "segment", "annualRevenue", "active"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 }, "name": { "type": "string", "minLength": 1 },
+        "segment": { "type": "string", "enum": ["A", "B", "C"] },
+        "annualRevenue": { "type": "number", "minimum": 0 }, "active": { "type": "boolean" }
+      }
+    },
+    "sales": {
+      "type": "object", "additionalProperties": false,
+      "required": ["trend90Days", "daysSinceLastOrder"],
+      "properties": { "trend90Days": { "type": "number" }, "daysSinceLastOrder": { "type": "integer", "minimum": 0 } }
+    },
+    "payments": {
+      "type": "object", "additionalProperties": false,
+      "required": ["overdueInvoices", "overdueAmount"],
+      "properties": { "overdueInvoices": { "type": "integer", "minimum": 0 }, "overdueAmount": { "type": "number", "minimum": 0 } }
+    },
+    "activity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["daysSinceLastVisit"],
+      "properties": { "daysSinceLastVisit": { "type": "integer", "minimum": 0 } }
+    },
+    "notes": { "type": "array", "maxItems": 10, "items": { "type": "string", "maxLength": 1000 } }
+  }
+}

@@ -37,7 +37,7 @@ test('contract registry lists and reads strict schemas', async () => {
   try {
     const list = await app.inject({ method: 'GET', url: '/contracts' });
     assert.equal(list.statusCode, 200);
-    assert.deepEqual(list.json(), [{ type: 'loan-application', version: 1 }, { type: 'order', version: 1 }]);
+    assert.deepEqual(list.json(), [{ type: 'crm-customer', version: 1 }, { type: 'loan-application', version: 1 }, { type: 'order', version: 1 }]);
     const read = await app.inject({ method: 'GET', url: '/contracts/order/1' });
     assert.equal(read.statusCode, 200);
     assert.equal(read.json().additionalProperties, false);

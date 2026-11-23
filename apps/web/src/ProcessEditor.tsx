@@ -3,14 +3,18 @@ import Modeler from 'bpmn-js/lib/Modeler';
 import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json';
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css';
+import { clearPath, highlightPath, markAiTasks } from './pathHighlight';
 
-export default function ProcessEditor({ xml, onSave, saveStatus, decisionKey, setDecisionKey }: {
+export default function ProcessEditor({ xml, onSave, saveStatus, decisionKey, setDecisionKey, highlight, onEdit }: {
   xml: string; onSave: (xml: string) => Promise<void>; saveStatus: string; decisionKey: string; setDecisionKey: (value: string) => void;
+  /** Activity ids from the last run, drawn on the canvas until the diagram is edited. */
+  highlight: string[] | null; onEdit: () => void;
 }) {
   const [host, setHost] = useState<HTMLDivElement | null>(null);
   const [modeler, setModeler] = useState<Modeler | null>(null);
   const [selected, setSelected] = useState<any>(null);
   const [localSaveError, setLocalSaveError] = useState('');
+  const [imported, setImported] = useState('');
 
   const fitDiagram = useCallback(() => {
     // A hidden or zero-sized container makes fit-viewport compute a non-finite scale.
@@ -51,7 +55,9 @@ export default function ProcessEditor({ xml, onSave, saveStatus, decisionKey, se
     let cancelled = false;
     modeler.importXML(xml).then(() => {
       if (cancelled) return;
+      markAiTasks(modeler);
       fitDiagram();
+      setImported(xml);
     }).catch(console.error);
     return () => { cancelled = true; };
   }, [modeler, xml, fitDiagram]);
@@ -85,6 +91,19 @@ export default function ProcessEditor({ xml, onSave, saveStatus, decisionKey, se
       if (frame !== undefined) window.cancelAnimationFrame(frame);
     };
   }, [host, modeler, fitDiagram]);
+
+  // Any edit makes the drawn path stale, so drop it and tell the parent.
+  useEffect(() => {
+    if (!modeler) return;
+    const onChange = () => onEdit();
+    modeler.on('commandStack.changed', onChange);
+    return () => modeler.off('commandStack.changed', onChange);
+  }, [modeler, onEdit]);
+
+  useEffect(() => {
+    if (!modeler || imported !== xml) return;
+    if (highlight) highlightPath(modeler, highlight); else clearPath(modeler);
+  }, [modeler, imported, xml, highlight]);
 
   async function saveFromCanvas() {
     if (!modeler) return;

@@ -1,4 +1,12 @@
 :root { font-family: Inter, system-ui, sans-serif; color: #17243b; background: #f4f6fa; }
+/* One color per role, used in panels, trace, comparison and diagram alike:
+   rules and policy stay neutral, Jev (AI) is violet, the executed path is blue. */
+:root {
+  --rules: #475569; --rules-soft: #eef1f5;
+  --ai: #7c3aed; --ai-ink: #5b21b6; --ai-soft: #f4efff;
+  --path: #2f63d0; --path-soft: #e8efff;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+}
 * { box-sizing: border-box; }
 body { margin: 0; }
 button, select, input, textarea { font: inherit; }
@@ -62,21 +70,90 @@ select, input { padding: .45rem; margin-left: .5rem; border: 1px solid #bdc8dc; 
 .crm-caption { color: #60708b; font-size: .85rem; }
 .crm-probability { margin: .8rem 0; }
 .crm-probability div { display: flex; justify-content: space-between; gap: 1rem; }
-.crm-probability progress { width: 100%; height: 1rem; accent-color: #4276d4; }
-.crm-trace { padding-left: 1.5rem; }
-.crm-trace li { padding: .2rem 0 .7rem .3rem; }
-.crm-trace li div { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin-top: .4rem; }
+.crm-probability progress { width: 100%; height: 1rem; accent-color: var(--ai); }
+
+/* Role colors */
+.tone-rules { --tone: var(--rules); --tone-soft: var(--rules-soft); }
+.tone-ai { --tone: var(--ai); --tone-soft: var(--ai-soft); }
+.tone-path { --tone: var(--path); --tone-soft: var(--path-soft); }
+.crm-dot { display: inline-block; width: .55rem; height: .55rem; margin-right: .5rem; border-radius: 50%; background: var(--tone, var(--rules)); vertical-align: .08em; }
+.crm-panel.tone-ai { border-top: 3px solid var(--ai); }
+.crm-panel.tone-rules { border-top: 3px solid var(--rules); }
+.crm-rule { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: .82em; padding: .1rem .35rem; border-radius: 4px; background: var(--rules-soft); color: var(--rules); overflow-wrap: anywhere; }
+.crm-ai-text { color: var(--ai-ink); }
+.tone-ai .crm-banner:not(.crm-warning) { background: var(--ai-soft); color: var(--ai-ink); }
+.tone-ai .crm-mock-badge { background: var(--ai); }
+.crm-subtle { color: #60708b; font-weight: 400; }
+
+/* Decision trace */
+.crm-trace { list-style: none; padding: 0; margin: 0; }
+.crm-trace > li { display: flex; gap: .8rem; align-items: flex-start; padding: .6rem 0; border-bottom: 1px solid #edf0f5; }
+.crm-trace > li:last-child { border-bottom: 0; }
+.crm-badge { flex: none; min-width: 4.6rem; padding: .2rem .45rem; border-radius: 4px; background: var(--tone-soft); color: var(--tone); font: 600 .72rem/1.4 ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: .06em; text-align: center; }
+.crm-trace-facts { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin-top: .35rem; }
 .crm-trace p { margin: .35rem 0 0; overflow-wrap: anywhere; }
-.crm-compare { margin-bottom: 1rem; }
-.crm-table-scroll { overflow-x: auto; }
-.crm-compare table { width: 100%; border-collapse: collapse; text-align: left; }
-.crm-compare th, .crm-compare td { padding: .6rem .75rem; border-bottom: 1px solid #e3e7ef; vertical-align: top; }
-.crm-compare thead { background: #f4f6fa; }
-.crm-compare tbody th { font-weight: 500; }
+
+/* Comparison verdict */
+.crm-verdict { margin-bottom: 1rem; padding: 1.2rem; border: 1px solid #d9e0ec; border-radius: 8px; background: white; }
+.crm-verdict-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: .3rem 1rem; }
+.crm-verdict-head h2 { margin: 0; font-size: 1.25rem; }
+.crm-verdict-head p { margin: 0; color: #60708b; font-size: .85rem; }
+.crm-verdict-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1rem; }
+.crm-verdict-card { display: flex; flex-direction: column; align-items: flex-start; gap: .55rem; padding: 1rem 1.1rem; text-align: left; border: 1px solid #d9e0ec; border-left: 4px solid var(--tone); border-radius: 8px; background: white; transition: box-shadow .2s, border-color .2s, background .2s; }
+.crm-verdict-card:hover { background: var(--tone-soft); border-color: #d9e0ec; border-left-color: var(--tone); }
+.crm-verdict-card[aria-pressed="true"] { background: var(--tone-soft); box-shadow: 0 0 0 2px var(--tone) inset; border-color: var(--tone); }
+.crm-verdict-card:focus-visible { outline: 2px solid var(--path); outline-offset: 2px; }
+.crm-eyebrow { color: var(--tone); font: 600 .72rem/1 ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: .1em; text-transform: uppercase; }
+.crm-verdict-action { font-size: 1.6rem; font-weight: 650; letter-spacing: -.01em; line-height: 1.15; }
+.crm-verdict-show { color: #60708b; font-size: .8rem; }
+.crm-why { margin: 1rem 0 0; line-height: 1.6; max-width: 70rem; }
+.crm-signals { margin-top: .9rem; }
+.crm-signals summary { cursor: pointer; color: #526684; font-size: .9rem; }
+.crm-table-scroll { overflow-x: auto; margin-top: .6rem; }
+.crm-signals table { width: 100%; border-collapse: collapse; text-align: left; }
+.crm-signals th, .crm-signals td { padding: .55rem .75rem; border-bottom: 1px solid #e3e7ef; vertical-align: top; }
+.crm-signals thead { background: #f4f6fa; }
+.crm-signals tbody th { font-weight: 500; }
+.crm-signals tr.is-diff td { background: var(--path-soft); font-weight: 600; }
+.crm-signals tr.is-ai-row th { color: var(--ai-ink); }
+.crm-signals tr.is-ai-row td:last-child { color: var(--ai-ink); }
+
+/* Process diagram */
+.crm-diagram { margin-bottom: 1rem; }
+.crm-legend { display: flex; flex-wrap: wrap; gap: .4rem 1.1rem; margin: 0; padding: 0; list-style: none; color: #526684; font-size: .82rem; }
+.crm-legend li { display: flex; align-items: center; gap: .4rem; margin: 0; }
+.crm-swatch { display: inline-block; width: 1.1rem; height: .7rem; border-radius: 3px; border: 2px solid; }
+.swatch-path { border-color: var(--path); background: var(--path-soft); }
+.swatch-rules { border-color: #22242a; background: white; }
+.swatch-ai { border-color: var(--ai); background: var(--ai-soft); }
+.process-viewer { position: relative; margin-top: .8rem; height: clamp(300px, 38vw, 440px); border: 1px solid #edf0f5; border-radius: 6px; background: radial-gradient(circle, #e3e8f1 1px, transparent 1px) 0 0 / 18px 18px; }
+.process-viewer-canvas { position: absolute; inset: 0; }
+.path-note { box-sizing: border-box; padding: .2rem .4rem; border-radius: 4px; font: 500 11px/1.3 ui-monospace, 'SF Mono', Menlo, monospace; text-align: center; overflow-wrap: anywhere; animation: note-in .4s var(--ease-out) both .45s; }
+.path-note-rules { background: var(--rules-soft); color: var(--rules); }
+.path-note-ai { background: var(--ai-soft); color: var(--ai-ink); }
+.path-note-action { background: var(--path-soft); color: var(--path); }
+@keyframes note-in { from { opacity: 0; transform: translateY(-3px); } }
+
+/* bpmn-js markers (shared by the modeler and the viewer). bpmn-js sets inline
+   stroke/fill styles, so these need !important to win. */
+.djs-shape.is-ai .djs-visual > :first-child { stroke: var(--ai) !important; fill: var(--ai-soft) !important; }
+.djs-shape.is-ai .djs-visual text, .djs-shape.is-ai .djs-visual path { fill: var(--ai-ink) !important; }
+.djs-element.path-skipped .djs-visual { opacity: .25; transition: opacity .35s; }
+.djs-element.path-taken .djs-visual { animation: path-in .45s var(--ease-out) both; animation-delay: calc(var(--step, 0) * 70ms); }
+.djs-shape.path-taken:not(.is-ai) .djs-visual > :first-child { stroke: var(--path) !important; stroke-width: 3px !important; }
+.djs-shape.path-taken:not(.is-ai) .djs-visual > rect:first-child, .djs-shape.path-taken:not(.is-ai) .djs-visual > circle:first-child { fill: var(--path-soft) !important; }
+.djs-shape.path-taken.is-ai .djs-visual > :first-child { stroke-width: 3px !important; }
+.djs-connection.path-taken .djs-visual > path { stroke: var(--path) !important; stroke-width: 3px !important; }
+@keyframes path-in { from { opacity: .25; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .djs-element.path-taken .djs-visual, .path-note { animation: none; }
+  .djs-element.path-skipped .djs-visual { transition: none; }
+}
+.run-hint { margin: 0 0 .4rem; color: #60708b; font-size: .85rem; }
 h2 { margin-top: 0; font-size: 1.1rem; }
 h3 { font-size: .95rem; margin-bottom: .4rem; }
 textarea { display: block; width: 100%; min-height: 130px; margin: .5rem 0; border: 1px solid #bdc8dc; border-radius: 4px; padding: .6rem; font-family: ui-monospace, monospace; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f4f6fa; padding: .7rem; }
 li { margin-bottom: .3rem; }
 @media (max-width: 850px) { main { grid-template-columns: 1fr; height: auto; }.workspace { height: 65vh; }.run-panel { max-height: none; }.send-page { grid-template-columns: 1fr; } }
-@media (max-width: 850px) { .crm-panels { grid-template-columns: 1fr; }.crm-layout { height: auto; }.crm-controls { width: 100%; } }
+@media (max-width: 850px) { .crm-verdict-cards { grid-template-columns: 1fr; }.crm-panels { grid-template-columns: 1fr; }.crm-layout { height: auto; }.crm-controls { width: 100%; } }

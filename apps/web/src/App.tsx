@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { api } from './api';
 
 const ProcessEditor = lazy(() => import('./ProcessEditor'));
@@ -14,7 +14,7 @@ const allowedNodes = new Set(['inputNode', 'outputNode', 'decisionTableNode']);
 const nodeNames: Record<string, string> = { functionNode: 'Function', expressionNode: 'Expression', switchNode: 'Switch' };
 
 export function App() {
-  const [page, setPage] = useState<Page>('process');
+  const [page, setPage] = useState<Page>('crm');
   const [processes, setProcesses] = useState<string[]>([]);
   const [decisions, setDecisions] = useState<string[]>([]);
   const [processKey, setProcessKey] = useState('order-discount');
@@ -25,6 +25,8 @@ export function App() {
   const [variables, setVariables] = useState('{"customerTier":"gold","orderTotal":150,"country":"US"}');
   const inputRevision = useRef(0);
   const [result, setResult] = useState<RunResult | null>(null);
+  const [highlight, setHighlight] = useState<string[] | null>(null);
+  const clearHighlight = useCallback(() => setHighlight(null), []);
   const [processSaveStatus, setProcessSaveStatus] = useState('');
   const [decisionSaveStatus, setDecisionSaveStatus] = useState('');
   const [runStatus, setRunStatus] = useState('');
@@ -93,8 +95,11 @@ export function App() {
     try {
       setRunStatus('Running…');
       setResult(null);
+      setHighlight(null);
       const parsed = JSON.parse(variables);
-      setResult(await api<RunResult>(`/processes/${processKey}/start`, { method: 'POST', body: JSON.stringify({ variables: parsed }) }));
+      const response = await api<RunResult>(`/processes/${processKey}/start`, { method: 'POST', body: JSON.stringify({ variables: parsed }) });
+      setResult(response);
+      setHighlight(response.path.map(step => step.id));
       setRunStatus('Process completed');
     } catch (error) { setRunStatus(String(error)); }
   }
@@ -105,11 +110,12 @@ export function App() {
     setProcessKey(key);
     setVariables('{}');
     setResult(null);
+    setHighlight(null);
     setRunStatus('');
   }
 
   return <div className="app-shell">
-    <header><h1>BPMN + Decisions</h1><nav><button className={page === 'process' ? 'active' : ''} onClick={() => setPage('process')}>Process modeler</button><button className={page === 'decision' ? 'active' : ''} onClick={() => setPage('decision')}>Decision editor</button><button className={page === 'send' ? 'active' : ''} onClick={() => setPage('send')}>Send request</button><button className={page === 'crm' ? 'active' : ''} onClick={() => setPage('crm')}>CRM showcase</button></nav></header>
+    <header><h1>BPMN + Decisions</h1><nav><button className={page === 'crm' ? 'active' : ''} onClick={() => setPage('crm')}>CRM showcase</button><button className={page === 'process' ? 'active' : ''} onClick={() => setPage('process')}>Process modeler</button><button className={page === 'decision' ? 'active' : ''} onClick={() => setPage('decision')}>Decision editor</button><button className={page === 'send' ? 'active' : ''} onClick={() => setPage('send')}>Send request</button></nav></header>
     <main className={page === 'send' ? 'send-layout' : page === 'crm' ? 'crm-layout' : ''}>
       {page === 'send' ? <Suspense fallback={<div className="editor-loading">Loading request form…</div>}><SendRequest /></Suspense> : <>
       {page === 'crm' ? <Suspense fallback={<div className="editor-loading">Loading CRM showcase…</div>}><CrmShowcase /></Suspense> : <>
@@ -117,10 +123,10 @@ export function App() {
         <div className="bar"><label>{page === 'process' ? 'Process' : 'Decision'} <select value={page === 'process' ? processKey : decisionKey} onChange={event => page === 'process' ? changeProcess(event.target.value) : setDecisionKey(event.target.value)}>{(page === 'process' ? processes : decisions).map(key => <option key={key}>{key}</option>)}</select></label>{page === 'decision' && <div className="save-actions"><span role="status">{decisionSaveStatus}</span><button onClick={saveDecision}>Save decision</button></div>}</div>
         {loadStatus && <p className="load-status" role="alert">{loadStatus}</p>}
         <Suspense fallback={<div className="editor-loading">Loading editor…</div>}>
-          {page === 'process' ? <ProcessEditor xml={xml} onSave={saveProcess} saveStatus={processSaveStatus} decisionKey={taskDecisionKey} setDecisionKey={setTaskDecisionKey} /> : <DecisionEditor graph={graph} onChange={setGraph} />}
+          {page === 'process' ? <ProcessEditor xml={xml} onSave={saveProcess} saveStatus={processSaveStatus} decisionKey={taskDecisionKey} setDecisionKey={setTaskDecisionKey} highlight={highlight} onEdit={clearHighlight} /> : <DecisionEditor graph={graph} onChange={setGraph} />}
         </Suspense>
       </section>
-      <aside className="run-panel"><h2>Run process</h2><label>Input variables<textarea value={variables} onChange={event => { inputRevision.current++; setVariables(event.target.value); }} spellCheck={false} /></label><button onClick={run}>Run</button>{runStatus && <p role="status">{runStatus}</p>}{result && <><h3>Path taken</h3><ol>{result.path.map((step, index) => <li key={`${step.id}-${index}`}>{step.name}</li>)}</ol><h3>Final variables</h3><pre>{JSON.stringify(result.variables, null, 2)}</pre></>}</aside>
+      <aside className="run-panel"><h2>Run process</h2><label>Input variables<textarea value={variables} onChange={event => { inputRevision.current++; setVariables(event.target.value); }} spellCheck={false} /></label><button onClick={run}>Run</button>{runStatus && <p role="status">{runStatus}</p>}{result && <><h3>Path taken</h3>{page === 'process' && <p className="run-hint">{highlight ? 'Drawn on the diagram.' : 'The diagram changed since this run.'}</p>}<ol className="run-path">{result.path.map((step, index) => <li key={`${step.id}-${index}`}>{step.name}</li>)}</ol><h3>Final variables</h3><pre>{JSON.stringify(result.variables, null, 2)}</pre></>}</aside>
       </>}
       </>}
     </main>

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api, ApiError } from './api';
+import ProcessViewer, { type PathNote } from './ProcessViewer';
 
 type Mode = 'rules-only' | 'hybrid';
 type Facts = { strategicAccount: boolean; salesDeclining: boolean; visitOverdue: boolean; paymentProblem: boolean };
@@ -49,6 +50,36 @@ function steps(result: CrmResult | null) {
   };
 }
 
+type Steps = ReturnType<typeof steps>;
+const modeLabels: Record<Mode, string> = { 'rules-only': 'Rules only', hybrid: 'Rules + Jev' };
+
+/** One sentence on why the two modes agree or differ, built from the trace only. */
+function explain(rules: Steps, hybrid: Steps): ReactNode {
+  const r = rules.policy, h = hybrid.policy, a = hybrid.assessment;
+  if (!r || !h) return null;
+  const rule = (value: string) => <code className="crm-rule">{value}</code>;
+  if (a?.status === 'unavailable') return <>Jev was unavailable ({a.errorKind ?? 'unknown'}), so the hybrid run fell back to {rule(h.rule)} and chose <strong>{action(h.nextAction)}</strong>.</>;
+  if (r.nextAction === h.nextAction) return r.rule === h.rule
+    ? <>Both modes choose <strong>{action(r.nextAction)}</strong>. Policy rule {rule(r.rule)} fires on the facts alone, so Jev's signals don't change the outcome.</>
+    : <>Both modes choose <strong>{action(r.nextAction)}</strong>, through different policy rules ({rule(r.rule)} and {rule(h.rule)}).</>;
+  const signals = a?.status === 'ok'
+    ? <span className="crm-ai-text">switching risk {percent(a.switchingRisk)}, needs attention {percent(a.needsAttention)}, objective {a.objective?.toLowerCase()} ({percent(a.objectiveProbability)})</span>
+    : null;
+  return <>The facts alone send this customer to <strong>{action(r.nextAction)}</strong> ({rule(r.rule)}). {signals ? <>With Jev's signals ({signals}), policy rule</> : <>With Jev, policy rule</>} {rule(h.rule)} chooses <strong>{action(h.nextAction)}</strong> instead.</>;
+}
+
+function pathNotes(result: CrmResult | null): PathNote[] {
+  if (!result) return [];
+  const { facts, assessment, policy } = steps(result);
+  const notes: PathNote[] = [];
+  if (facts) notes.push({ id: 'derive-facts', tone: 'rules', text: `${factLabels.filter(([key]) => facts[key]).length} of ${factLabels.length} facts true` });
+  if (assessment) notes.push({ id: 'assess-with-jev', tone: 'ai', text: assessment.status === 'ok'
+    ? `Switching ${percent(assessment.switchingRisk)} · ${assessment.objective?.toLowerCase()}`
+    : assessment.status === 'skipped' ? 'Skipped (rules only)' : `Unavailable: ${assessment.errorKind ?? 'unknown'}` });
+  if (policy) notes.push({ id: 'apply-policy', tone: 'rules', text: policy.rule });
+  return notes;
+}
+
 function ProbabilityBar({ label, value }: { label: string; value: number | null }) {
   return <div className="crm-probability"><div><span>{label}</span><strong>{percent(value)}</strong></div><progress max={1} value={value ?? 0} aria-label={label} /></div>;
 }
@@ -62,17 +93,23 @@ export default function CrmShowcase() {
   const [status, setStatus] = useState('');
   const [violations, setViolations] = useState<Violation[]>([]);
   const [busy, setBusy] = useState(false);
+  const [xml, setXml] = useState('');
 
   useEffect(() => {
     api<Fixture[]>('/fixtures/crm-customer').then(items => {
       setFixtures(items);
       if (items.length) { setSelectedId(items[0].id); setPayload(structuredClone(items[0].payload)); }
     }).catch(error => setStatus(String(error)));
+    api<{ xml: string }>('/processes/crm-next-best-action').then(data => setXml(data.xml)).catch(error => setStatus(String(error)));
   }, []);
 
   const selected = fixtures.find(item => item.id === selectedId);
   const displayed = payload ? comparison?.[payload.mode] ?? result : null;
   const { facts, assessment, policy, bpmn } = steps(displayed);
+  const runPath = useMemo(() => displayed ? displayed.path.map(step => step.id) : null, [displayed]);
+  const notes = useMemo(() => pathNotes(displayed), [displayed]);
+  const rulesSteps = comparison ? steps(comparison['rules-only']) : null;
+  const hybridSteps = comparison ? steps(comparison.hybrid) : null;
 
   function clearResults() { setResult(null); setComparison(null); setStatus(''); setViolations([]); }
   function selectScenario(id: string) {
@@ -142,17 +179,46 @@ export default function CrmShowcase() {
     {status && <p role="status" className="crm-status">{status}</p>}
     {violations.length > 0 && <div role="alert" className="crm-errors"><h3>Contract violations</h3><ul>{violations.map((error, index) => <li key={`${error.path}-${index}`}><code>{error.path}</code>: {error.message}</li>)}</ul></div>}
 
-    {comparison && <section className="crm-panel crm-compare" aria-label="Mode comparison">
-      <h2>Compare modes</h2><div className="crm-table-scroll"><table><thead><tr><th>Result</th><th>Rules only</th><th>Rules + Jev</th></tr></thead><tbody>
-        {factLabels.map(([key, label]) => <tr key={key}><th>{label}</th><td>{fact(steps(comparison['rules-only']).facts?.[key])}</td><td>{fact(steps(comparison.hybrid).facts?.[key])}</td></tr>)}
-        <tr><th>Switching risk</th><td>not assessed</td><td>{signal(steps(comparison.hybrid).assessment, steps(comparison.hybrid).assessment?.switchingRisk)}</td></tr>
-        <tr><th>Needs attention</th><td>not assessed</td><td>{signal(steps(comparison.hybrid).assessment, steps(comparison.hybrid).assessment?.needsAttention)}</td></tr>
-        <tr><th>Objective</th><td>not assessed</td><td>{steps(comparison.hybrid).assessment?.status === 'ok' ? `${steps(comparison.hybrid).assessment?.objective} (${percent(steps(comparison.hybrid).assessment?.objectiveProbability)}, confidence ${percent(steps(comparison.hybrid).assessment?.objectiveConfidence)})` : 'not assessed'}</td></tr>
-        <tr><th>Relationship level</th><td>not assessed</td><td>{steps(comparison.hybrid).assessment?.status === 'ok' ? steps(comparison.hybrid).assessment?.relationshipLevel : 'not assessed'}</td></tr>
-        <tr><th>Policy rule</th><td>{steps(comparison['rules-only']).policy?.rule ?? '—'}</td><td>{steps(comparison.hybrid).policy?.rule ?? '—'}</td></tr>
-        <tr><th>Final action</th><td>{action(steps(comparison['rules-only']).policy?.nextAction)}</td><td>{action(steps(comparison.hybrid).policy?.nextAction)}</td></tr>
-      </tbody></table></div>
+    {comparison && rulesSteps && hybridSteps && payload && <section className="crm-verdict" aria-label="Mode comparison">
+      <div className="crm-verdict-head">
+        <h2>{rulesSteps.policy?.nextAction === hybridSteps.policy?.nextAction ? 'Both modes agree' : 'Same customer, two different answers'}</h2>
+        <p>Select a result to draw its path on the diagram.</p>
+      </div>
+      <div className="crm-verdict-cards">
+        {(['rules-only', 'hybrid'] as Mode[]).map(mode => {
+          const item = mode === 'hybrid' ? hybridSteps : rulesSteps;
+          return <button key={mode} type="button" className={`crm-verdict-card ${mode === 'hybrid' ? 'tone-ai' : 'tone-rules'}`} aria-pressed={payload.mode === mode} onClick={() => setMode(mode)} disabled={busy}>
+            <span className="crm-eyebrow"><span className="crm-dot" aria-hidden="true" />{modeLabels[mode]}</span>
+            <strong className="crm-verdict-action">{action(item.policy?.nextAction)}</strong>
+            <code className="crm-rule">{item.policy?.rule ?? '—'}</code>
+            <span className="crm-verdict-show">{payload.mode === mode ? 'Shown on diagram' : 'Show on diagram'}</span>
+          </button>;
+        })}
+      </div>
+      <p className="crm-why">{explain(rulesSteps, hybridSteps)}</p>
+      <details className="crm-signals"><summary>All facts and signals</summary><div className="crm-table-scroll"><table><thead><tr><th>Result</th><th>Rules only</th><th>Rules + Jev</th></tr></thead><tbody>
+        {factLabels.map(([key, label]) => { const a = rulesSteps.facts?.[key], b = hybridSteps.facts?.[key]; return <tr key={key} className={a !== b ? 'is-diff' : ''}><th>{label}</th><td>{fact(a)}</td><td>{fact(b)}</td></tr>; })}
+        <tr className="is-ai-row"><th>Switching risk</th><td>not assessed</td><td>{signal(hybridSteps.assessment, hybridSteps.assessment?.switchingRisk)}</td></tr>
+        <tr className="is-ai-row"><th>Needs attention</th><td>not assessed</td><td>{signal(hybridSteps.assessment, hybridSteps.assessment?.needsAttention)}</td></tr>
+        <tr className="is-ai-row"><th>Objective</th><td>not assessed</td><td>{hybridSteps.assessment?.status === 'ok' ? `${hybridSteps.assessment.objective} (${percent(hybridSteps.assessment.objectiveProbability)}, confidence ${percent(hybridSteps.assessment.objectiveConfidence)})` : 'not assessed'}</td></tr>
+        <tr className="is-ai-row"><th>Relationship level</th><td>not assessed</td><td>{hybridSteps.assessment?.status === 'ok' ? hybridSteps.assessment.relationshipLevel : 'not assessed'}</td></tr>
+        <tr className={rulesSteps.policy?.rule !== hybridSteps.policy?.rule ? 'is-diff' : ''}><th>Policy rule</th><td>{rulesSteps.policy?.rule ?? '—'}</td><td>{hybridSteps.policy?.rule ?? '—'}</td></tr>
+        <tr className={rulesSteps.policy?.nextAction !== hybridSteps.policy?.nextAction ? 'is-diff' : ''}><th>Final action</th><td>{action(rulesSteps.policy?.nextAction)}</td><td>{action(hybridSteps.policy?.nextAction)}</td></tr>
+      </tbody></table></div></details>
     </section>}
+
+    <section className="crm-panel crm-diagram">
+      <div className="crm-panel-heading">
+        <h2>Process path{displayed && payload ? <span className="crm-subtle"> · {modeLabels[payload.mode]}</span> : null}</h2>
+        <ul className="crm-legend" aria-label="Legend">
+          <li><span className="crm-swatch swatch-path" aria-hidden="true" />Path taken</li>
+          <li><span className="crm-swatch swatch-rules" aria-hidden="true" />Rules and policy</li>
+          <li><span className="crm-swatch swatch-ai" aria-hidden="true" />AI signals (Jev)</li>
+        </ul>
+      </div>
+      {!displayed && <p className="crm-caption">Run a scenario to see which way the process goes.</p>}
+      {xml && <ProcessViewer xml={xml} path={runPath} notes={notes} label={displayed ? `Process path: ${(bpmn?.path ?? []).join(', ')}` : 'CRM next best action process'} />}
+    </section>
 
     <div className="crm-panels">
       <section className="crm-panel"><div className="crm-panel-heading"><h2>1 · Customer state</h2><button onClick={resetScenario} disabled={!selected || busy}>Reset scenario</button></div>
@@ -165,8 +231,8 @@ export default function CrmShowcase() {
           {payload.notes.map((note, index) => <div className="crm-note" key={index}><label>Note {index + 1}<textarea value={note} maxLength={1000} onChange={event => setNotes(payload.notes.map((item, itemIndex) => itemIndex === index ? event.target.value : item))} disabled={busy} /></label><button onClick={() => setNotes(payload.notes.filter((_, itemIndex) => itemIndex !== index))} disabled={busy}>Remove note</button></div>)}
         </> : <p>Loading scenarios…</p>}
       </section>
-      <section className="crm-panel"><h2>2 · Business rules</h2>{facts ? <ul className="crm-facts">{factLabels.map(([key, label]) => <li key={key}><span aria-label={facts[key] ? 'true' : 'false'} className={facts[key] ? 'crm-yes' : 'crm-no'}>{fact(facts[key])}</span>{label}</li>)}</ul> : <p>Run a scenario to see the ZEN-derived facts.</p>}</section>
-      <section className="crm-panel"><h2>3 · Jev assessment</h2>
+      <section className="crm-panel tone-rules"><h2><span className="crm-dot" aria-hidden="true" />2 · Business rules</h2>{facts ? <ul className="crm-facts">{factLabels.map(([key, label]) => <li key={key}><span aria-label={facts[key] ? 'true' : 'false'} className={facts[key] ? 'crm-yes' : 'crm-no'}>{fact(facts[key])}</span>{label}</li>)}</ul> : <p>Run a scenario to see the ZEN-derived facts.</p>}</section>
+      <section className="crm-panel tone-ai"><h2><span className="crm-dot" aria-hidden="true" />3 · Jev assessment</h2>
         {!assessment ? <p>Run a scenario to see the assessment.</p> : <>
           {assessment.status === 'skipped' && <p className="crm-banner">skipped (Rules only)</p>}
           {assessment.status === 'unavailable' && <p className="crm-banner crm-warning">unavailable: {assessment.errorKind ?? 'unknown'} — {policy?.nextAction === 'HUMAN_REVIEW' ? 'routed to human review' : `policy selected ${action(policy?.nextAction)}`}</p>}
@@ -179,10 +245,10 @@ export default function CrmShowcase() {
         </>}
       </section>
       <section className="crm-panel"><h2>4 · Decision trace</h2>{displayed ? <ol className="crm-trace">
-        <li><strong>ZEN — facts</strong><div>{factLabels.map(([key, label]) => <span key={key}>{label}: {fact(facts?.[key])}</span>)}</div></li>
-        <li><strong>JEV — signals</strong><p>{assessment?.status === 'ok' ? `Switching ${percent(assessment.switchingRisk)}, attention ${percent(assessment.needsAttention)}, objective ${assessment.objective}, relationship ${assessment.relationshipLevel}` : assessment?.status === 'skipped' ? 'Not assessed (Rules only)' : `Unavailable: ${assessment?.errorKind ?? 'unknown'}`}</p></li>
-        <li><strong>POLICY — {policy?.rule ?? '—'}</strong><p>Next action: {action(policy?.nextAction)}</p></li>
-        <li><strong>BPMN — path</strong><p>{(bpmn?.path ?? []).map(id => displayed.path.find(item => item.id === id)?.name ?? id).join(' → ')}</p><p>Final action: {action(policy?.nextAction)}</p></li>
+        <li className="tone-rules"><span className="crm-badge">ZEN</span><div><strong>Facts</strong><div className="crm-trace-facts">{factLabels.map(([key, label]) => <span key={key}>{label}: {fact(facts?.[key])}</span>)}</div></div></li>
+        <li className="tone-ai"><span className="crm-badge">JEV</span><div><strong>Signals</strong><p>{assessment?.status === 'ok' ? `Switching ${percent(assessment.switchingRisk)}, attention ${percent(assessment.needsAttention)}, objective ${assessment.objective}, relationship ${assessment.relationshipLevel}` : assessment?.status === 'skipped' ? 'Not assessed (Rules only)' : `Unavailable: ${assessment?.errorKind ?? 'unknown'}`}</p></div></li>
+        <li className="tone-rules"><span className="crm-badge">POLICY</span><div><strong><code className="crm-rule">{policy?.rule ?? '—'}</code></strong><p>Next action: {action(policy?.nextAction)}</p></div></li>
+        <li className="tone-path"><span className="crm-badge">BPMN</span><div><strong>Path</strong><p>{(bpmn?.path ?? []).map(id => displayed.path.find(item => item.id === id)?.name ?? id).join(' → ')}</p></div></li>
       </ol> : <p>Run a scenario to see ZEN → JEV → POLICY → BPMN.</p>}</section>
     </div>
   </div>;

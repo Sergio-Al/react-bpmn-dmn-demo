@@ -17,6 +17,7 @@ body { background: var(--bg, #fafaf9); }
 .brand-name { font-family: var(--font-display); font-size: 24px; line-height: 1; letter-spacing: -.01em; color: var(--text); }
 .brand-name em { color: var(--brand); }
 .app-nav { margin-right: auto; }
+.lang-switch { font-family: var(--font-mono); font-size: 12px; }
 .nav-item { display: inline-flex; align-items: center; gap: 8px; }
 .app-main { padding: 24px; }
 

@@ -1,10 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import NavigatedViewer from 'bpmn-js/lib/NavigatedViewer';
 import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json';
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css';
 import { clearPath, highlightPath, markAiTasks } from './pathHighlight';
 import { bpmnRenderer, useThemeMode } from './theme';
+import { bpmnName } from './i18n';
+
+/** Read-only view, so element names can be shown in the UI language without touching the file. */
+function localizeNames(xml: string): string {
+  const doc = new DOMParser().parseFromString(xml, 'application/xml');
+  if (doc.querySelector('parsererror')) return xml;
+  doc.querySelectorAll('[name]').forEach(element => element.setAttribute('name', bpmnName(element.getAttribute('name') ?? '')));
+  return new XMLSerializer().serializeToString(doc);
+}
 
 export type PathNote = { id: string; text: string; tone: 'rules' | 'ai' | 'action' };
 
@@ -16,6 +26,9 @@ export default function ProcessViewer({ xml, path, notes, label }: {
   const [viewer, setViewer] = useState<NavigatedViewer | null>(null);
   const [ready, setReady] = useState(false);
   const mode = useThemeMode();
+  const { i18n } = useTranslation();
+  const lng = i18n.resolvedLanguage;
+  const source = useMemo(() => (lng && lng !== 'en' && xml ? localizeNames(xml) : xml), [xml, lng]);
 
   useEffect(() => {
     if (!host.current) return;
@@ -27,17 +40,17 @@ export default function ProcessViewer({ xml, path, notes, label }: {
   }, [mode]);
 
   useEffect(() => {
-    if (!viewer || !xml) return;
+    if (!viewer || !source) return;
     let cancelled = false;
     setReady(false);
-    viewer.importXML(xml).then(() => {
+    viewer.importXML(source).then(() => {
       if (cancelled) return;
       markAiTasks(viewer);
       (viewer.get('canvas') as any).zoom('fit-viewport', 'auto');
       setReady(true);
     }).catch(console.error);
     return () => { cancelled = true; };
-  }, [viewer, xml]);
+  }, [viewer, source]);
 
   useEffect(() => {
     if (!viewer || !host.current) return;

@@ -1,7 +1,11 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Alert, App as AntApp, Button, Card, ConfigProvider, Empty, Input, Layout, Segmented, Select, Skeleton, Space, Timeline, Tooltip, Tour, Typography, type TourProps } from 'antd';
 import { BranchesOutlined, CompassOutlined, MoonOutlined, PlayCircleOutlined, SendOutlined, SunOutlined, TableOutlined, TeamOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
+import enUS from 'antd/locale/en_US';
+import esES from 'antd/locale/es_ES';
 import { api } from './api';
+import { currentLanguage, LANGUAGES, type Language } from './i18n';
 import { antdThemeFor, cssVars, ThemeModeContext, type Mode } from './theme';
 import { markTourSeen, TOUR_KEYS, tourSeen, tourTarget, useTourKeys } from './tour';
 
@@ -17,12 +21,13 @@ type CrmFixture = { payload: Record<string, unknown> };
 const allowedNodes = new Set(['inputNode', 'outputNode', 'decisionTableNode']);
 const nodeNames: Record<string, string> = { functionNode: 'Function', expressionNode: 'Expression', switchNode: 'Switch' };
 
-const pages: Array<{ value: Page; label: string; icon: ReactNode }> = [
-  { value: 'crm', label: 'CRM showcase', icon: <TeamOutlined /> },
-  { value: 'process', label: 'Process modeler', icon: <BranchesOutlined /> },
-  { value: 'decision', label: 'Decision editor', icon: <TableOutlined /> },
-  { value: 'send', label: 'Send request', icon: <SendOutlined /> },
+const pages: Array<{ value: Page; icon: ReactNode }> = [
+  { value: 'crm', icon: <TeamOutlined /> },
+  { value: 'process', icon: <BranchesOutlined /> },
+  { value: 'decision', icon: <TableOutlined /> },
+  { value: 'send', icon: <SendOutlined /> },
 ];
+const antdLocales = { en: enUS, es: esES } as const;
 
 function initialMode(): Mode {
   try {
@@ -35,6 +40,8 @@ function initialMode(): Mode {
 const loading = <div className="page-loading"><Skeleton active paragraph={{ rows: 6 }} /></div>;
 
 export function App() {
+  const { t, i18n } = useTranslation();
+  const lng = currentLanguage();
   const [mode, setMode] = useState<Mode>(initialMode);
   const [page, setPage] = useState<Page>('crm');
   const [processes, setProcesses] = useState<string[]>([]);
@@ -113,45 +120,41 @@ export function App() {
     if (next === 4 && !highlight) await run(); // "Run it" runs the process so the last step shows the drawn path
     setProcessTourStep(next);
   }
+  const tourText = (key: string) => ({ title: t(`tours.process.${key}.title`), description: t(`tours.process.${key}.description`) });
   const processTourSteps: TourProps['steps'] = [
-    { title: 'Build the process', target: () => document.querySelector<HTMLElement>('.djs-palette') as HTMLElement, placement: 'right',
-      description: 'Drag events, tasks and gateways onto the canvas. This is a standard BPMN 2.0 modeler (bpmn-js).' },
-    { title: 'Tasks that call decisions', target: tourTarget('canvas'),
-      description: 'Business rule tasks (the table icon) evaluate a decision table. Select one to set which decision it calls.' },
-    { title: 'Input for a run', target: tourTarget('run-input'), placement: 'left',
-      description: 'An example request for this process is filled in. Edit it to try other paths.' },
-    { title: 'Run it', target: tourTarget('run'), placement: 'left',
-      description: 'Runs the process on the server with bpmn-engine and ZEN.', nextButtonProps: { children: running ? 'Running…' : 'Run it' } },
-    { title: 'The path, drawn', target: tourTarget('canvas'),
-      description: 'The bronze path is what the engine executed; skipped branches fade. Edit the diagram and the highlight clears.', nextButtonProps: { children: 'Done' } },
+    { ...tourText('palette'), target: () => document.querySelector<HTMLElement>('.djs-palette') as HTMLElement, placement: 'right' },
+    { ...tourText('tasks'), target: tourTarget('canvas') },
+    { ...tourText('input'), target: tourTarget('run-input'), placement: 'left' },
+    { ...tourText('run'), target: tourTarget('run'), placement: 'left', nextButtonProps: { children: running ? t('common.running') : t('tours.process.run.next') } },
+    { ...tourText('path'), target: tourTarget('canvas'), nextButtonProps: { children: t('common.done') } },
   ];
 
   useTourKeys(processTourOpen, processTourStep, processTourSteps.length, { close: closeProcessTour, go: changeProcessTourStep });
 
   async function saveDecision() {
     if (!graph || !Array.isArray(graph.nodes)) {
-      setDecisionSaveStatus('Cannot save: decision is not loaded.');
+      setDecisionSaveStatus(t('editor.notLoaded'));
       return;
     }
     const disallowed = [...new Set(graph.nodes
       .filter((node: { type?: string }) => !node.type || !allowedNodes.has(node.type))
       .map((node: { type?: string }) => nodeNames[node.type ?? ''] ?? node.type ?? 'Unknown'))];
     if (disallowed.length) {
-      setDecisionSaveStatus(`Cannot save: ${disallowed.join(', ')} ${disallowed.length === 1 ? 'node is' : 'nodes are'} not supported. Use Request, Response, or Decision table.`);
+      setDecisionSaveStatus(t('editor.unsupported', { count: disallowed.length, nodes: disallowed.join(', ') }));
       return;
     }
     try {
-      setDecisionSaveStatus('Saving…');
+      setDecisionSaveStatus(t('editor.saving'));
       await api(`/decisions/${decisionKey}`, { method: 'PUT', body: JSON.stringify(graph) });
-      setDecisionSaveStatus('Saved');
+      setDecisionSaveStatus(t('editor.saved'));
     } catch (error) { setDecisionSaveStatus(error instanceof Error ? error.message : String(error)); }
   }
 
   async function saveProcess(source: string) {
     try {
-      setProcessSaveStatus('Saving…');
+      setProcessSaveStatus(t('editor.saving'));
       await api(`/processes/${processKey}`, { method: 'PUT', body: JSON.stringify({ xml: source }) });
-      setProcessSaveStatus('Saved');
+      setProcessSaveStatus(t('editor.saved'));
     } catch (error) { setProcessSaveStatus(error instanceof Error ? error.message : String(error)); }
   }
 
@@ -182,19 +185,22 @@ export function App() {
   const isEditor = page === 'process' || page === 'decision';
   const keys = page === 'process' ? processes : decisions;
 
-  return <ConfigProvider theme={antdThemeFor(mode)}>
+  return <ConfigProvider theme={antdThemeFor(mode)} locale={antdLocales[lng]}>
     <ThemeModeContext.Provider value={mode}>
       <AntApp>
         <Layout className={`app-shell theme-${mode}`} style={cssVars(mode)}>
           <Layout.Header className="app-header">
-            <div className="brand"><span className="brand-mark" aria-hidden="true" /><span className="brand-name">Hybrid <em>Decisions</em></span></div>
+            <div className="brand"><span className="brand-mark" aria-hidden="true" /><span className="brand-name">{t('app.brandStart')} <em>{t('app.brandEnd')}</em></span></div>
             <Segmented<Page> className="app-nav" value={page} onChange={setPage}
-              options={pages.map(item => ({ value: item.value, label: <span className="nav-item">{item.icon}<span className="nav-label">{item.label}</span></span> }))} />
-            {(page === 'crm' || page === 'process') && <Tooltip title="Walk through this page">
-              <Button type="text" icon={<CompassOutlined />} onClick={startTour}><span className="nav-label">Tour</span></Button>
+              options={pages.map(item => ({ value: item.value, label: <span className="nav-item">{item.icon}<span className="nav-label">{t(`app.nav.${item.value}`)}</span></span> }))} />
+            {(page === 'crm' || page === 'process') && <Tooltip title={t('app.tourTooltip')}>
+              <Button type="text" icon={<CompassOutlined />} onClick={startTour}><span className="nav-label">{t('app.tour')}</span></Button>
             </Tooltip>}
-            <Tooltip title={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}>
-              <Button type="text" shape="circle" aria-label={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            <Segmented<Language> size="small" className="lang-switch" aria-label={t('app.language')} value={lng}
+              onChange={value => i18n.changeLanguage(value)}
+              options={LANGUAGES.map(code => ({ value: code, label: <span lang={code}>{code.toUpperCase()}</span> }))} />
+            <Tooltip title={mode === 'dark' ? t('app.toLight') : t('app.toDark')}>
+              <Button type="text" shape="circle" aria-label={mode === 'dark' ? t('app.toLight') : t('app.toDark')}
                 icon={mode === 'dark' ? <SunOutlined /> : <MoonOutlined />} onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')} />
             </Tooltip>
           </Layout.Header>
@@ -203,11 +209,11 @@ export function App() {
             {page === 'crm' && <Suspense fallback={loading}><CrmShowcase tourSignal={crmTourSignal} /></Suspense>}
             {isEditor && <div className="editor-layout">
               <Card className="workspace" size="small"
-                title={<Space size={8}><Typography.Text type="secondary">{page === 'process' ? 'Process' : 'Decision'}</Typography.Text>
+                title={<Space size={8}><Typography.Text type="secondary">{page === 'process' ? t('editor.process') : t('editor.decision')}</Typography.Text>
                   <Select size="middle" style={{ minWidth: 220 }} value={page === 'process' ? processKey : decisionKey}
                     onChange={value => page === 'process' ? changeProcess(value) : setDecisionKey(value)}
                     options={keys.map(key => ({ value: key, label: key }))} /></Space>}
-                extra={page === 'decision' && <Space><Typography.Text type="secondary" role="status">{decisionSaveStatus}</Typography.Text><Button type="primary" onClick={saveDecision}>Save decision</Button></Space>}>
+                extra={page === 'decision' && <Space><Typography.Text type="secondary" role="status">{decisionSaveStatus}</Typography.Text><Button type="primary" onClick={saveDecision}>{t('editor.saveDecision')}</Button></Space>}>
                 {loadStatus && <Alert type="error" showIcon message={loadStatus} className="load-status" />}
                 <Suspense fallback={loading}>
                   {page === 'process'
@@ -215,23 +221,23 @@ export function App() {
                     : <DecisionEditor graph={graph} onChange={setGraph} />}
                 </Suspense>
               </Card>
-              <Card className="run-panel" size="small" title="Run process">
-                <Typography.Text type="secondary">Input variables</Typography.Text>
+              <Card className="run-panel" size="small" title={t('editor.runTitle')}>
+                <Typography.Text type="secondary">{t('editor.inputVariables')}</Typography.Text>
                 <Input.TextArea data-tour="run-input" className="code-input" value={variables} autoSize={{ minRows: 6, maxRows: 14 }} spellCheck={false}
                   onChange={event => { inputRevision.current++; setVariables(event.target.value); }} />
-                <Button data-tour="run" type="primary" block icon={<PlayCircleOutlined />} loading={running} onClick={run}>Run</Button>
+                <Button data-tour="run" type="primary" block icon={<PlayCircleOutlined />} loading={running} onClick={run}>{t('editor.run')}</Button>
                 {runError && <Alert type="error" showIcon message={runError} />}
                 {result ? <>
                   <div className="run-section">
-                    <Typography.Title level={5}>Path taken</Typography.Title>
-                    {page === 'process' && <Typography.Text type="secondary">{highlight ? 'Drawn on the diagram.' : 'The diagram changed since this run.'}</Typography.Text>}
+                    <Typography.Title level={5}>{t('editor.pathTaken')}</Typography.Title>
+                    {page === 'process' && <Typography.Text type="secondary">{highlight ? t('editor.drawn') : t('editor.stale')}</Typography.Text>}
                     <Timeline className="run-path" items={result.path.map(step => ({ color: 'var(--path)', children: step.name }))} />
                   </div>
                   <div className="run-section">
-                    <Typography.Title level={5}>Final variables</Typography.Title>
+                    <Typography.Title level={5}>{t('editor.finalVariables')}</Typography.Title>
                     <pre className="code-block">{JSON.stringify(result.variables, null, 2)}</pre>
                   </div>
-                </> : !runError && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Run the process to see its path." />}
+                </> : !runError && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('editor.runEmpty')} />}
               </Card>
             </div>}
           </Layout.Content>

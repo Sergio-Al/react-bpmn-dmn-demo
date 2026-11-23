@@ -20,7 +20,7 @@ export const tourTarget = (name: string) => () => document.querySelector<HTMLEle
 
 /**
  * Keyboard support the antd 5.21 Tour lacks: Esc closes, arrow keys step through.
- * Ignored while typing in a field so editing the input box isn't hijacked.
+ * Esc always closes; arrows are ignored while a form control has focus.
  */
 export function useTourKeys(open: boolean, step: number, total: number, actions: { close: () => void; go: (step: number) => void }) {
   const latest = useRef(actions);
@@ -28,10 +28,11 @@ export function useTourKeys(open: boolean, step: number, total: number, actions:
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { event.preventDefault(); latest.current.close(); return; }
+      // Arrow keys belong to form controls (text fields, radios, segmented switches) while they have focus.
       const target = event.target as HTMLElement | null;
-      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
-      if (event.key === 'Escape') { event.preventDefault(); latest.current.close(); }
-      else if (event.key === 'ArrowRight' && step < total - 1) { event.preventDefault(); latest.current.go(step + 1); }
+      if (target?.closest('input, textarea, select, [role="radio"], [role="radiogroup"], [contenteditable="true"]')) return;
+      if (event.key === 'ArrowRight' && step < total - 1) { event.preventDefault(); latest.current.go(step + 1); }
       else if (event.key === 'ArrowLeft' && step > 0) { event.preventDefault(); latest.current.go(step - 1); }
     };
     window.addEventListener('keydown', onKey);

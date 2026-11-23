@@ -1,0 +1,375 @@
+{
+  "app": {
+    "title": "Hybrid Decisions · BPMN + reglas + Jev",
+    "brandStart": "Hybrid",
+    "brandEnd": "Decisions",
+    "nav": {
+      "crm": "Caso CRM",
+      "process": "Modelador de procesos",
+      "decision": "Editor de decisiones",
+      "send": "Enviar solicitud"
+    },
+    "tour": "Recorrido",
+    "tourTooltip": "Recorrer esta página",
+    "toDark": "Cambiar a tema oscuro",
+    "toLight": "Cambiar a tema claro",
+    "language": "Idioma"
+  },
+  "common": {
+    "notAssessed": "sin evaluar",
+    "yes": "Sí",
+    "no": "No",
+    "running": "Ejecutando…",
+    "done": "Listo",
+    "requestFailed": "La solicitud falló"
+  },
+  "editor": {
+    "process": "Proceso",
+    "decision": "Decisión",
+    "saveProcess": "Guardar proceso",
+    "saveDecision": "Guardar decisión",
+    "saving": "Guardando…",
+    "saved": "Guardado",
+    "notLoaded": "No se puede guardar: la decisión no está cargada.",
+    "unsupported_one": "No se puede guardar: el nodo {{nodes}} no es compatible. Usa Request, Response o Decision table.",
+    "unsupported_other": "No se puede guardar: los nodos {{nodes}} no son compatibles. Usa Request, Response o Decision table.",
+    "decisionKey": "Clave de decisión",
+    "selectRuleTask": "Selecciona una tarea de regla de negocio para definir su clave de decisión.",
+    "decisionNote": "Solo se pueden guardar nodos Request, Response y Decision table.",
+    "runTitle": "Ejecutar proceso",
+    "inputVariables": "Variables de entrada",
+    "run": "Ejecutar",
+    "pathTaken": "Camino recorrido",
+    "drawn": "Dibujado en el diagrama.",
+    "stale": "El diagrama cambió desde esta ejecución.",
+    "finalVariables": "Variables finales",
+    "runEmpty": "Ejecuta el proceso para ver su camino."
+  },
+  "send": {
+    "title": "Enviar solicitud",
+    "contract": "Contrato",
+    "envelope": "Sobre de la solicitud",
+    "send": "Enviar",
+    "result": "Resultado",
+    "process": "Proceso",
+    "requestId": "ID de solicitud",
+    "empty": "Envía una solicitud para ver a qué proceso se dirige y qué devuelve."
+  },
+  "crm": {
+    "eyebrow": "Siguiente mejor acción en CRM",
+    "headlineStart": "Reglas para lo que sabemos.",
+    "headlineAi": "Jev",
+    "headlineEnd": "para lo que juzgamos.",
+    "rolesLabel": "Cuatro roles",
+    "roles": {
+      "rules": {
+        "name": "Reglas",
+        "question": "¿Qué sabemos?"
+      },
+      "jev": {
+        "name": "Jev",
+        "question": "¿Qué parece cierto?"
+      },
+      "policy": {
+        "name": "Política",
+        "question": "¿Qué podemos hacer?"
+      },
+      "bpmn": {
+        "name": "BPMN",
+        "question": "¿Qué sigue?"
+      }
+    },
+    "scenario": "Escenario",
+    "mode": "Modo",
+    "run": "Ejecutar",
+    "compare": "Comparar ambos modos",
+    "verdictLabel": "Comparación de modos",
+    "agree": "Ambos modos coinciden",
+    "differStart": "Mismo cliente,",
+    "differEnd": "dos respuestas distintas",
+    "selectHint": "Selecciona un resultado para dibujar su camino en el diagrama.",
+    "shown": "En el diagrama",
+    "show": "Ver en el diagrama",
+    "allSignals": "Todos los hechos y señales",
+    "column": {
+      "result": "Resultado"
+    },
+    "rows": {
+      "switching": "Riesgo de cambio de proveedor",
+      "attention": "Requiere atención",
+      "objective": "Objetivo",
+      "relationship": "Nivel de la relación",
+      "rule": "Regla de política",
+      "action": "Acción final"
+    },
+    "objectiveValue": "{{objective}} ({{probability}}, confianza {{confidence}})",
+    "explain": {
+      "unavailable": "Jev no estuvo disponible ({{error}}), así que la ejecución híbrida recurrió a <rule>{{rule}}</rule> y eligió <strong>{{action}}</strong>.",
+      "sameRule": "Ambos modos eligen <strong>{{action}}</strong>. La regla de política <rule>{{rule}}</rule> se activa solo con los hechos, así que las señales de Jev no cambian el resultado.",
+      "sameAction": "Ambos modos eligen <strong>{{action}}</strong>, mediante reglas de política distintas (<rule>{{rulesRule}}</rule> y <rule>{{hybridRule}}</rule>).",
+      "differWithSignals": "Solo con los hechos, este cliente va a <strong>{{rulesAction}}</strong> (<rule>{{rulesRule}}</rule>). Con las señales de Jev (<ai>riesgo de cambio {{switching}}, requiere atención {{attention}}, objetivo {{objective}} ({{probability}})</ai>), la regla de política <rule>{{hybridRule}}</rule> elige <strong>{{hybridAction}}</strong> en su lugar.",
+      "differ": "Solo con los hechos, este cliente va a <strong>{{rulesAction}}</strong> (<rule>{{rulesRule}}</rule>). Con Jev, la regla de política <rule>{{hybridRule}}</rule> elige <strong>{{hybridAction}}</strong> en su lugar."
+    },
+    "diagram": {
+      "title": "Camino del proceso",
+      "legend": "Leyenda",
+      "path": "Camino recorrido",
+      "rules": "Reglas y política",
+      "ai": "Señales de IA (Jev)",
+      "hint": "Ejecuta un escenario para ver por dónde va el proceso.",
+      "label": "Proceso de siguiente mejor acción en CRM",
+      "labelRun": "Camino del proceso: {{path}}"
+    },
+    "notes": {
+      "facts": "{{count}} de {{total}} hechos ciertos",
+      "jevOk": "Cambio {{switching}} · {{objective}}",
+      "jevSkipped": "Omitido (solo reglas)",
+      "jevUnavailable": "No disponible: {{error}}"
+    },
+    "customer": {
+      "title": "Estado del cliente",
+      "reset": "Restablecer",
+      "segment": "Segmento",
+      "revenue": "Ingresos anuales",
+      "trend": "Tendencia de ventas (90 días)",
+      "visit": "Días desde la última visita",
+      "order": "Días desde el último pedido",
+      "invoices": "Facturas vencidas",
+      "overdue": "Monto vencido",
+      "active": "Activo",
+      "notes": "Notas",
+      "addNote": "Añadir nota",
+      "note": "Nota {{n}}",
+      "removeNote": "Quitar nota",
+      "removeNoteN": "Quitar nota {{n}}",
+      "loading": "Cargando escenarios…"
+    },
+    "rules": {
+      "title": "Reglas de negocio",
+      "empty": "Ejecuta un escenario para ver los hechos que derivan las reglas."
+    },
+    "jev": {
+      "title": "Evaluación de Jev",
+      "mockTooltip": "Respuestas predefinidas por escenario; las notas editadas se ignoran.",
+      "tag": "Señales de IA",
+      "empty": "Ejecuta un escenario para ver la evaluación.",
+      "skipped": "Omitido en el modo Solo reglas.",
+      "unavailable": "No disponible: {{error}}",
+      "routedReview": "Enviado a revisión humana.",
+      "policySelected": "La política eligió {{action}}.",
+      "objectiveValue": "{{objective}} · {{probability}} de probabilidad · {{confidence}} de confianza",
+      "relationshipValue": "{{level}} · {{risk}} / 3 · {{confidence}} de confianza",
+      "noModel": "Sin llamada al modelo",
+      "meta": "{{model}} · {{ms}} ms · señales, no garantías",
+      "relationshipRisk": "Riesgo de la relación"
+    },
+    "trace": {
+      "title": "Traza de la decisión",
+      "facts": "Hechos",
+      "signals": "Señales",
+      "signalsOk": "Cambio {{switching}}, atención {{attention}}, objetivo {{objective}}, riesgo de relación {{relationship}}",
+      "notAssessed": "Sin evaluar (solo reglas)",
+      "unavailable": "No disponible: {{error}}",
+      "nextAction": "Siguiente acción:",
+      "path": "Camino",
+      "empty": "Ejecuta un escenario para ver ZEN → JEV → POLICY → BPMN."
+    }
+  },
+  "modes": {
+    "rules-only": "Solo reglas",
+    "hybrid": "Reglas + Jev"
+  },
+  "facts": {
+    "strategicAccount": "Cuenta estratégica",
+    "salesDeclining": "Ventas en descenso",
+    "visitOverdue": "Visita atrasada",
+    "paymentProblem": "Problema de pago"
+  },
+  "actions": {
+    "NO_ACTION": "Sin acción",
+    "HUMAN_REVIEW": "Revisión humana",
+    "CREATE_RETENTION_VISIT": "Visita de retención",
+    "CREATE_UPSELL_FOLLOWUP": "Seguimiento de venta adicional",
+    "CREATE_ACCOUNT_FOLLOWUP": "Seguimiento de cuenta",
+    "COLLECTION_FOLLOWUP": "Seguimiento de cobranza"
+  },
+  "objectives": {
+    "RETENTION": "retención",
+    "UPSELL": "venta adicional",
+    "COLLECTION": "cobranza",
+    "NORMAL_FOLLOWUP": "seguimiento normal",
+    "OTHER": "otro"
+  },
+  "levels": {
+    "LOW": "BAJO",
+    "MEDIUM": "MEDIO",
+    "HIGH": "ALTO",
+    "CRITICAL": "CRÍTICO"
+  },
+  "scenarios": {
+    "healthy": {
+      "title": "Cuenta saludable",
+      "description": "Relación estable sin señales inmediatas.",
+      "notes": [
+        "El cliente confirmó que está satisfecho con la puntualidad de las entregas y la calidad del producto.",
+        "Compras renovó el contrato de suministro por un año más.",
+        "El ejecutivo de cuenta reporta una relación constructiva y planes de pedido estables."
+      ]
+    },
+    "churn": {
+      "title": "Riesgo de cambio en Andes Retail",
+      "description": "Cuenta estratégica con señales de cambio de proveedor.",
+      "notes": [
+        "El cliente dijo que un competidor le ofreció mejores condiciones comerciales.",
+        "Compras está evaluando proveedores alternativos para el próximo trimestre."
+      ]
+    },
+    "upsell": {
+      "title": "Oportunidad de venta adicional",
+      "description": "Cuenta en crecimiento con interés en otros productos.",
+      "notes": [
+        "El comprador pidió precios de dos líneas de producto adicionales.",
+        "Una nueva tienda que abre el próximo trimestre requerirá mayores volúmenes.",
+        "El cliente está satisfecho con el servicio actual y no tiene saldo vencido."
+      ]
+    },
+    "payment": {
+      "title": "Problema de pago",
+      "description": "Las facturas vencidas tienen prioridad sobre las demás señales.",
+      "notes": [
+        "Dos facturas siguen impagas después de su fecha de vencimiento.",
+        "Cuentas por pagar reconoció el saldo, pero no se comprometió a una fecha de pago.",
+        "El comprador quiere seguir haciendo pedidos cuando se resuelva el saldo."
+      ]
+    },
+    "ambiguous": {
+      "title": "Señales ambiguas",
+      "description": "La información contradictoria requiere revisión humana.",
+      "notes": [
+        "Compras preguntó si se pueden mantener los precios el próximo trimestre y mencionó que está comparando ofertas del mercado.",
+        "El mismo comprador dijo que valora nuestras entregas confiables y que piensa renovar la relación.",
+        "No se aprobó ningún cambio de proveedor, pero el pronóstico de la próxima compra sigue siendo incierto."
+      ]
+    }
+  },
+  "bpmnNames": {
+    "Start": "Inicio",
+    "End": "Fin",
+    "Derive customer facts": "Derivar hechos del cliente",
+    "Assess with Jev": "Evaluar con Jev",
+    "Apply policy": "Aplicar política",
+    "Next action": "Siguiente acción",
+    "No action": "Sin acción",
+    "Human review": "Revisión humana",
+    "Retention visit": "Visita de retención",
+    "Upsell follow-up": "Seguimiento de venta adicional",
+    "Account follow-up": "Seguimiento de cuenta",
+    "Collection follow-up": "Seguimiento de cobranza",
+    "Determine discount": "Determinar descuento",
+    "Discount > 0?": "¿Descuento > 0?",
+    "Apply discount": "Aplicar descuento",
+    "No discount": "Sin descuento",
+    "Yes": "Sí",
+    "No": "No",
+    "Approve loan": "Aprobar préstamo",
+    "Flag for review": "Marcar para revisión",
+    "Queue manual review": "Encolar revisión manual",
+    "CRM next best action": "Siguiente mejor acción en CRM",
+    "High-value order": "Pedido de alto valor",
+    "Loan auto approve": "Aprobación automática de préstamo",
+    "Loan manual review": "Revisión manual de préstamo",
+    "Order discount": "Descuento de pedido"
+  },
+  "bpmnUi": {
+    "Activate hand tool": "Activar herramienta de mano",
+    "Activate lasso tool": "Activar herramienta de lazo",
+    "Activate create/remove space tool": "Activar herramienta de crear/quitar espacio",
+    "Activate global connect tool": "Activar herramienta de conexión global",
+    "Create start event": "Crear evento de inicio",
+    "Create intermediate/boundary event": "Crear evento intermedio/de borde",
+    "Create end event": "Crear evento de fin",
+    "Create gateway": "Crear compuerta",
+    "Create task": "Crear tarea",
+    "Create expanded sub-process": "Crear subproceso expandido",
+    "Create data object reference": "Crear referencia a objeto de datos",
+    "Create data store reference": "Crear referencia a almacén de datos",
+    "Create pool/participant": "Crear pool/participante",
+    "Create group": "Crear grupo",
+    "Append task": "Añadir tarea",
+    "Append gateway": "Añadir compuerta",
+    "Append end event": "Añadir evento de fin",
+    "Append intermediate/boundary event": "Añadir evento intermedio/de borde",
+    "Append receive task": "Añadir tarea de recepción",
+    "Append message intermediate catch event": "Añadir evento intermedio de recepción de mensaje",
+    "Append timer intermediate catch event": "Añadir evento intermedio de temporizador",
+    "Append conditional intermediate catch event": "Añadir evento intermedio condicional",
+    "Append signal intermediate catch event": "Añadir evento intermedio de señal",
+    "Append compensation activity": "Añadir actividad de compensación",
+    "Add text annotation": "Añadir anotación de texto",
+    "Change element": "Cambiar elemento",
+    "Connect to other element": "Conectar con otro elemento",
+    "Connect using association": "Conectar mediante asociación",
+    "Connect using data input association": "Conectar mediante asociación de entrada de datos",
+    "Delete": "Eliminar",
+    "Add lane above": "Añadir carril arriba",
+    "Add lane below": "Añadir carril abajo",
+    "Divide into two lanes": "Dividir en dos carriles",
+    "Divide into three lanes": "Dividir en tres carriles"
+  },
+  "tours": {
+    "crm": {
+      "roles": {
+        "title": "Cuatro roles, una decisión",
+        "description": "Las reglas derivan hechos concretos. Jev, un modelo de IA, juzga lo que los datos no pueden afirmar con certeza. La política decide qué está permitido y BPMN lo ejecuta."
+      },
+      "scenario": {
+        "title": "Elige un cliente",
+        "description": "Cada escenario es un registro de CRM. El recorrido usa Andes Retail: una cuenta estratégica cuyas notas mencionan a un competidor."
+      },
+      "mode": {
+        "title": "Solo reglas, o Reglas + Jev",
+        "description": "Solo reglas decide únicamente con los hechos. Reglas + Jev añade señales de IA que la política puede leer. Jev nunca elige la acción."
+      },
+      "compare": {
+        "title": "Ejecuta ambos modos",
+        "description": "Siguiente envía el mismo cliente por ambos modos a la vez.",
+        "next": "Ejecutar comparación"
+      },
+      "verdict": {
+        "title": "¿Mismo cliente, respuestas distintas?",
+        "description": "Cada tarjeta muestra la acción que eligió un modo y la regla de política detrás. La frase de abajo explica por qué difieren, a partir de la propia ejecución."
+      },
+      "diagram": {
+        "title": "Sigue el camino",
+        "description": "La línea bronce es el camino que tomó el proceso; las ramas omitidas se atenúan. Las notas muestran lo que encontró cada paso. Haz clic en la otra tarjeta para redibujarlo."
+      },
+      "jev": {
+        "title": "Señales, no decisiones",
+        "description": "Jev devuelve probabilidades con su nivel de confianza. La política las lee con umbrales fijos y comprobables, así que cada acción se puede rastrear hasta una regla."
+      }
+    },
+    "process": {
+      "palette": {
+        "title": "Construye el proceso",
+        "description": "Arrastra eventos, tareas y compuertas al lienzo. Es un modelador BPMN 2.0 estándar (bpmn-js)."
+      },
+      "tasks": {
+        "title": "Tareas que llaman decisiones",
+        "description": "Las tareas de regla de negocio (el ícono de tabla) evalúan una tabla de decisión. Selecciona una para definir qué decisión llama."
+      },
+      "input": {
+        "title": "Entrada para una ejecución",
+        "description": "Ya viene cargada una solicitud de ejemplo para este proceso. Edítala para probar otros caminos."
+      },
+      "run": {
+        "title": "Ejecútalo",
+        "description": "Ejecuta el proceso en el servidor con bpmn-engine y ZEN.",
+        "next": "Ejecutar"
+      },
+      "path": {
+        "title": "El camino, dibujado",
+        "description": "El camino bronce es lo que ejecutó el motor; las ramas omitidas se atenúan. Si editas el diagrama, el resaltado desaparece."
+      }
+    }
+  }
+}

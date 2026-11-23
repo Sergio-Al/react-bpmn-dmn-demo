@@ -1,0 +1,313 @@
+{
+  "app": {
+    "title": "Hybrid Decisions · BPMN + rules + Jev",
+    "brandStart": "Hybrid",
+    "brandEnd": "Decisions",
+    "nav": {
+      "crm": "CRM showcase",
+      "process": "Process modeler",
+      "decision": "Decision editor",
+      "send": "Send request"
+    },
+    "tour": "Tour",
+    "tourTooltip": "Walk through this page",
+    "toDark": "Switch to dark theme",
+    "toLight": "Switch to light theme",
+    "language": "Language"
+  },
+  "common": {
+    "notAssessed": "not assessed",
+    "yes": "Yes",
+    "no": "No",
+    "running": "Running…",
+    "done": "Done",
+    "requestFailed": "Request failed"
+  },
+  "editor": {
+    "process": "Process",
+    "decision": "Decision",
+    "saveProcess": "Save process",
+    "saveDecision": "Save decision",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "notLoaded": "Cannot save: decision is not loaded.",
+    "unsupported_one": "Cannot save: {{nodes}} node is not supported. Use Request, Response, or Decision table.",
+    "unsupported_other": "Cannot save: {{nodes}} nodes are not supported. Use Request, Response, or Decision table.",
+    "decisionKey": "Decision key",
+    "selectRuleTask": "Select a business rule task to set its decision key.",
+    "decisionNote": "Only Request, Response, and Decision table nodes can be saved.",
+    "runTitle": "Run process",
+    "inputVariables": "Input variables",
+    "run": "Run",
+    "pathTaken": "Path taken",
+    "drawn": "Drawn on the diagram.",
+    "stale": "The diagram changed since this run.",
+    "finalVariables": "Final variables",
+    "runEmpty": "Run the process to see its path."
+  },
+  "send": {
+    "title": "Send request",
+    "contract": "Contract",
+    "envelope": "Request envelope",
+    "send": "Send",
+    "result": "Result",
+    "process": "Process",
+    "requestId": "Request ID",
+    "empty": "Send a request to see which process it routes to and what it returns."
+  },
+  "crm": {
+    "eyebrow": "CRM next best action",
+    "headlineStart": "Rules for what we know.",
+    "headlineAi": "Jev",
+    "headlineEnd": "for what we judge.",
+    "rolesLabel": "Four roles",
+    "roles": {
+      "rules": {
+        "name": "Rules",
+        "question": "What do we know?"
+      },
+      "jev": {
+        "name": "Jev",
+        "question": "What appears true?"
+      },
+      "policy": {
+        "name": "Policy",
+        "question": "What may we do?"
+      },
+      "bpmn": {
+        "name": "BPMN",
+        "question": "What happens next?"
+      }
+    },
+    "scenario": "Scenario",
+    "mode": "Mode",
+    "run": "Run",
+    "compare": "Compare both modes",
+    "verdictLabel": "Mode comparison",
+    "agree": "Both modes agree",
+    "differStart": "Same customer,",
+    "differEnd": "two different answers",
+    "selectHint": "Select a result to draw its path on the diagram.",
+    "shown": "Shown on diagram",
+    "show": "Show on diagram",
+    "allSignals": "All facts and signals",
+    "column": {
+      "result": "Result"
+    },
+    "rows": {
+      "switching": "Switching risk",
+      "attention": "Needs attention",
+      "objective": "Objective",
+      "relationship": "Relationship level",
+      "rule": "Policy rule",
+      "action": "Final action"
+    },
+    "objectiveValue": "{{objective}} ({{probability}}, confidence {{confidence}})",
+    "explain": {
+      "unavailable": "Jev was unavailable ({{error}}), so the hybrid run fell back to <rule>{{rule}}</rule> and chose <strong>{{action}}</strong>.",
+      "sameRule": "Both modes choose <strong>{{action}}</strong>. Policy rule <rule>{{rule}}</rule> fires on the facts alone, so Jev's signals don't change the outcome.",
+      "sameAction": "Both modes choose <strong>{{action}}</strong>, through different policy rules (<rule>{{rulesRule}}</rule> and <rule>{{hybridRule}}</rule>).",
+      "differWithSignals": "The facts alone send this customer to <strong>{{rulesAction}}</strong> (<rule>{{rulesRule}}</rule>). With Jev's signals (<ai>switching risk {{switching}}, needs attention {{attention}}, objective {{objective}} ({{probability}})</ai>), policy rule <rule>{{hybridRule}}</rule> chooses <strong>{{hybridAction}}</strong> instead.",
+      "differ": "The facts alone send this customer to <strong>{{rulesAction}}</strong> (<rule>{{rulesRule}}</rule>). With Jev, policy rule <rule>{{hybridRule}}</rule> chooses <strong>{{hybridAction}}</strong> instead."
+    },
+    "diagram": {
+      "title": "Process path",
+      "legend": "Legend",
+      "path": "Path taken",
+      "rules": "Rules and policy",
+      "ai": "AI signals (Jev)",
+      "hint": "Run a scenario to see which way the process goes.",
+      "label": "CRM next best action process",
+      "labelRun": "Process path: {{path}}"
+    },
+    "notes": {
+      "facts": "{{count}} of {{total}} facts true",
+      "jevOk": "Switching {{switching}} · {{objective}}",
+      "jevSkipped": "Skipped (rules only)",
+      "jevUnavailable": "Unavailable: {{error}}"
+    },
+    "customer": {
+      "title": "Customer state",
+      "reset": "Reset",
+      "segment": "Segment",
+      "revenue": "Annual revenue",
+      "trend": "Sales trend (90 days)",
+      "visit": "Days since last visit",
+      "order": "Days since last order",
+      "invoices": "Overdue invoices",
+      "overdue": "Overdue amount",
+      "active": "Active",
+      "notes": "Notes",
+      "addNote": "Add note",
+      "note": "Note {{n}}",
+      "removeNote": "Remove note",
+      "removeNoteN": "Remove note {{n}}",
+      "loading": "Loading scenarios…"
+    },
+    "rules": {
+      "title": "Business rules",
+      "empty": "Run a scenario to see the facts the rules derive."
+    },
+    "jev": {
+      "title": "Jev assessment",
+      "mockTooltip": "Canned answers per fixture; edited notes are ignored.",
+      "tag": "AI signals",
+      "empty": "Run a scenario to see the assessment.",
+      "skipped": "Skipped in Rules only mode.",
+      "unavailable": "Unavailable: {{error}}",
+      "routedReview": "Routed to human review.",
+      "policySelected": "Policy selected {{action}}.",
+      "objectiveValue": "{{objective}} · {{probability}} probability · {{confidence}} confidence",
+      "relationshipValue": "{{level}} · {{risk}} / 3 · {{confidence}} confidence",
+      "noModel": "No model called",
+      "meta": "{{model}} · {{ms}} ms · signals, not guarantees",
+      "relationshipRisk": "Relationship risk"
+    },
+    "trace": {
+      "title": "Decision trace",
+      "facts": "Facts",
+      "signals": "Signals",
+      "signalsOk": "Switching {{switching}}, attention {{attention}}, objective {{objective}}, relationship {{relationship}}",
+      "notAssessed": "Not assessed (Rules only)",
+      "unavailable": "Unavailable: {{error}}",
+      "nextAction": "Next action:",
+      "path": "Path",
+      "empty": "Run a scenario to see ZEN → JEV → POLICY → BPMN."
+    }
+  },
+  "modes": {
+    "rules-only": "Rules only",
+    "hybrid": "Rules + Jev"
+  },
+  "facts": {
+    "strategicAccount": "Strategic account",
+    "salesDeclining": "Sales declining",
+    "visitOverdue": "Visit overdue",
+    "paymentProblem": "Payment problem"
+  },
+  "actions": {
+    "NO_ACTION": "No action",
+    "HUMAN_REVIEW": "Human review",
+    "CREATE_RETENTION_VISIT": "Retention visit",
+    "CREATE_UPSELL_FOLLOWUP": "Upsell follow-up",
+    "CREATE_ACCOUNT_FOLLOWUP": "Account follow-up",
+    "COLLECTION_FOLLOWUP": "Collection follow-up"
+  },
+  "objectives": {
+    "RETENTION": "retention",
+    "UPSELL": "upsell",
+    "COLLECTION": "collection",
+    "NORMAL_FOLLOWUP": "normal follow-up",
+    "OTHER": "other"
+  },
+  "levels": {
+    "LOW": "LOW",
+    "MEDIUM": "MEDIUM",
+    "HIGH": "HIGH",
+    "CRITICAL": "CRITICAL"
+  },
+  "scenarios": {
+    "healthy": {
+      "title": "Healthy account",
+      "description": "Stable relationship with no immediate signal.",
+      "notes": [
+        "The customer confirmed they are satisfied with delivery reliability and product quality.",
+        "Purchasing renewed the supply agreement for another year.",
+        "The account manager reports a constructive relationship and steady order plans."
+      ]
+    },
+    "churn": {
+      "title": "Andes Retail switching risk",
+      "description": "Strategic account showing signs of supplier switching.",
+      "notes": [
+        "The customer said a competitor offered better commercial conditions.",
+        "Purchasing is evaluating alternative suppliers for next quarter."
+      ]
+    },
+    "upsell": {
+      "title": "Upsell opportunity",
+      "description": "Growing account with interest in additional products.",
+      "notes": [
+        "The buyer asked for pricing on two additional product lines.",
+        "A new store opening next quarter will require higher volumes.",
+        "The customer is satisfied with current service and has no overdue balance."
+      ]
+    },
+    "payment": {
+      "title": "Payment issue",
+      "description": "Overdue invoices take precedence over other signals.",
+      "notes": [
+        "Two invoices remain unpaid after their due dates.",
+        "Accounts payable acknowledged the balance but has not committed to a payment date.",
+        "The buyer wants to continue ordering once the balance is resolved."
+      ]
+    },
+    "ambiguous": {
+      "title": "Ambiguous signals",
+      "description": "Conflicting information calls for human review.",
+      "notes": [
+        "Purchasing asked whether prices can be held for the next quarter and mentioned comparing market offers.",
+        "The same buyer said they value our reliable deliveries and intend to renew the relationship.",
+        "No supplier change has been approved, but the next purchase forecast remains uncertain."
+      ]
+    }
+  },
+  "bpmnNames": {},
+  "bpmnUi": {},
+  "tours": {
+    "crm": {
+      "roles": {
+        "title": "Four roles, one decision",
+        "description": "Rules derive hard facts. Jev, an AI model, judges what the data can't state for sure. Policy decides what's allowed, and BPMN carries it out."
+      },
+      "scenario": {
+        "title": "Pick a customer",
+        "description": "Each scenario is a CRM record. The tour uses Andes Retail: a strategic account whose notes mention a competitor."
+      },
+      "mode": {
+        "title": "Rules only, or Rules + Jev",
+        "description": "Rules only decides on facts alone. Rules + Jev adds AI signals the policy can read. Jev never picks the action."
+      },
+      "compare": {
+        "title": "Run both modes",
+        "description": "Next sends the same customer through both modes at once.",
+        "next": "Run comparison"
+      },
+      "verdict": {
+        "title": "Same customer, different answers?",
+        "description": "Each card shows the action a mode chose and the policy rule behind it. The sentence below says why they differ, built from the run itself."
+      },
+      "diagram": {
+        "title": "Follow the path",
+        "description": "The bronze line is the path the process took; skipped branches fade. Notes show what each step found. Click the other card to redraw it."
+      },
+      "jev": {
+        "title": "Signals, not decisions",
+        "description": "Jev returns probabilities with confidence. The policy reads them through fixed, testable thresholds, so every action traces back to a rule."
+      }
+    },
+    "process": {
+      "palette": {
+        "title": "Build the process",
+        "description": "Drag events, tasks and gateways onto the canvas. This is a standard BPMN 2.0 modeler (bpmn-js)."
+      },
+      "tasks": {
+        "title": "Tasks that call decisions",
+        "description": "Business rule tasks (the table icon) evaluate a decision table. Select one to set which decision it calls."
+      },
+      "input": {
+        "title": "Input for a run",
+        "description": "An example request for this process is filled in. Edit it to try other paths."
+      },
+      "run": {
+        "title": "Run it",
+        "description": "Runs the process on the server with bpmn-engine and ZEN.",
+        "next": "Run it"
+      },
+      "path": {
+        "title": "The path, drawn",
+        "description": "The bronze path is what the engine executed; skipped branches fade. Edit the diagram and the highlight clears."
+      }
+    }
+  }
+}

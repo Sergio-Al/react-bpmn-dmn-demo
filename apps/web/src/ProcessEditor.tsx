@@ -7,6 +7,8 @@ import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css';
 import { clearPath, highlightPath, markAiTasks } from './pathHighlight';
 import { bpmnRenderer, useThemeMode } from './theme';
+import { useTranslation } from 'react-i18next';
+import { bpmnTranslateModule, currentLanguage } from './i18n';
 
 export default function ProcessEditor({ xml, onSave, saveStatus, decisionKey, setDecisionKey, highlight, onEdit }: {
   xml: string; onSave: (xml: string) => Promise<void>; saveStatus: string; decisionKey: string; setDecisionKey: (value: string) => void;
@@ -19,6 +21,8 @@ export default function ProcessEditor({ xml, onSave, saveStatus, decisionKey, se
   const [localSaveError, setLocalSaveError] = useState('');
   const [imported, setImported] = useState('');
   const mode = useThemeMode();
+  const { t, i18n } = useTranslation();
+  const lng = i18n.resolvedLanguage;
   // bpmn-js bakes colors in when it is created, so a theme change rebuilds the modeler.
   // Unsaved edits are carried over through this draft.
   const draft = useRef<string | null>(null);
@@ -47,7 +51,8 @@ export default function ProcessEditor({ xml, onSave, saveStatus, decisionKey, se
 
   useEffect(() => {
     if (!host) return;
-    const instance = new Modeler({ container: host, moddleExtensions: { camunda: camundaModdle }, bpmnRenderer: bpmnRenderer(mode) } as any);
+    // Palette and context-pad tooltips follow the UI language; element names stay as written in the file.
+    const instance = new Modeler({ container: host, moddleExtensions: { camunda: camundaModdle }, bpmnRenderer: bpmnRenderer(mode), additionalModules: [bpmnTranslateModule(currentLanguage())] } as any);
     setImported('');
     setModeler(instance);
     instance.on('selection.changed', (event: any) => {
@@ -56,7 +61,7 @@ export default function ProcessEditor({ xml, onSave, saveStatus, decisionKey, se
       setDecisionKey(element?.type === 'bpmn:BusinessRuleTask' ? element.businessObject.get('camunda:decisionRef') ?? '' : '');
     });
     return () => { instance.destroy(); setModeler(null); };
-  }, [host, setDecisionKey, mode]);
+  }, [host, setDecisionKey, mode, lng]);
 
   useEffect(() => { draft.current = null; }, [xml]);
 
@@ -136,9 +141,9 @@ export default function ProcessEditor({ xml, onSave, saveStatus, decisionKey, se
   return <>
     <div className="editor-toolbar">
       {selected
-        ? <label className="key-field"><Typography.Text type="secondary">Decision key</Typography.Text><Input size="small" className="mono" value={decisionKey} onChange={event => updateDecisionKey(event.target.value)} /></label>
-        : <Typography.Text type="secondary">Select a business rule task to set its decision key.</Typography.Text>}
-      <div className="save-actions"><Typography.Text type={localSaveError ? 'danger' : 'secondary'} role="status">{localSaveError || saveStatus}</Typography.Text><Button icon={<SaveOutlined />} onClick={saveFromCanvas}>Save process</Button></div>
+        ? <label className="key-field"><Typography.Text type="secondary">{t('editor.decisionKey')}</Typography.Text><Input size="small" className="mono" value={decisionKey} onChange={event => updateDecisionKey(event.target.value)} /></label>
+        : <Typography.Text type="secondary">{t('editor.selectRuleTask')}</Typography.Text>}
+      <div className="save-actions"><Typography.Text type={localSaveError ? 'danger' : 'secondary'} role="status">{localSaveError || saveStatus}</Typography.Text><Button icon={<SaveOutlined />} onClick={saveFromCanvas}>{t('editor.saveProcess')}</Button></div>
     </div>
     <div className="process-canvas" data-tour="canvas" ref={setHost} />
   </>;

@@ -3,7 +3,7 @@ import { Alert, App as AntApp, Button, Card, ConfigProvider, Empty, Input, Layou
 import { BranchesOutlined, CompassOutlined, MoonOutlined, PlayCircleOutlined, SendOutlined, SunOutlined, TableOutlined, TeamOutlined } from '@ant-design/icons';
 import { api } from './api';
 import { antdThemeFor, cssVars, ThemeModeContext, type Mode } from './theme';
-import { markTourSeen, TOUR_KEYS, tourSeen, tourTarget } from './tour';
+import { markTourSeen, TOUR_KEYS, tourSeen, tourTarget, useTourKeys } from './tour';
 
 const ProcessEditor = lazy(() => import('./ProcessEditor'));
 const DecisionEditor = lazy(() => import('./DecisionEditor'));
@@ -126,6 +126,8 @@ export function App() {
       description: 'The bronze path is what the engine executed; skipped branches fade. Edit the diagram and the highlight clears.', nextButtonProps: { children: 'Done' } },
   ];
 
+  useTourKeys(processTourOpen, processTourStep, processTourSteps.length, { close: closeProcessTour, go: changeProcessTourStep });
+
   async function saveDecision() {
     if (!graph || !Array.isArray(graph.nodes)) {
       setDecisionSaveStatus('Cannot save: decision is not loaded.');
@@ -142,7 +144,7 @@ export function App() {
       setDecisionSaveStatus('Saving…');
       await api(`/decisions/${decisionKey}`, { method: 'PUT', body: JSON.stringify(graph) });
       setDecisionSaveStatus('Saved');
-    } catch (error) { setDecisionSaveStatus(String(error)); }
+    } catch (error) { setDecisionSaveStatus(error instanceof Error ? error.message : String(error)); }
   }
 
   async function saveProcess(source: string) {
@@ -150,7 +152,7 @@ export function App() {
       setProcessSaveStatus('Saving…');
       await api(`/processes/${processKey}`, { method: 'PUT', body: JSON.stringify({ xml: source }) });
       setProcessSaveStatus('Saved');
-    } catch (error) { setProcessSaveStatus(String(error)); }
+    } catch (error) { setProcessSaveStatus(error instanceof Error ? error.message : String(error)); }
   }
 
   async function run() {

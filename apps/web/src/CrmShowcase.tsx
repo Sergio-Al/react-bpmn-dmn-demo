@@ -3,7 +3,7 @@ import { Alert, Button, Card, Col, Collapse, Descriptions, Empty, Input, Progres
 import { CheckCircleFilled, CloseCircleOutlined, DeleteOutlined, PlayCircleOutlined, PlusOutlined, ReloadOutlined, SwapOutlined } from '@ant-design/icons';
 import { api, ApiError } from './api';
 import ProcessViewer, { type PathNote } from './ProcessViewer';
-import { markTourSeen, TOUR_KEYS, tourSeen, tourTarget } from './tour';
+import { markTourSeen, TOUR_KEYS, tourSeen, tourTarget, useTourKeys } from './tour';
 
 type Mode = 'rules-only' | 'hybrid';
 type Facts = { strategicAccount: boolean; salesDeclining: boolean; visitOverdue: boolean; paymentProblem: boolean };
@@ -223,6 +223,8 @@ export default function CrmShowcase({ tourSignal }: { tourSignal: number }) {
       description: 'Jev returns probabilities with confidence. The policy reads them through fixed, testable thresholds, so every action traces back to a rule.',
       nextButtonProps: { children: 'Done' } },
   ];
+
+  useTourKeys(tourOpen, tourStep, tourSteps.length, { close: closeTour, go: changeTourStep });
 
   const signalRows = rulesSteps && hybridSteps ? [
     ...factLabels.map(([key, label]) => ({ key, label, rules: <FactValue value={rulesSteps.facts?.[key]} />, hybrid: <FactValue value={hybridSteps.facts?.[key]} />, diff: rulesSteps.facts?.[key] !== hybridSteps.facts?.[key], ai: false })),

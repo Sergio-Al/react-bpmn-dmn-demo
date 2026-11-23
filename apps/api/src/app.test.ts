@@ -76,3 +76,20 @@ test('API returns 404 for unknown model ids', async () => {
     }
   } finally { await app.close(); }
 });
+
+test('read-only mode rejects saves but still runs processes', async () => {
+  const app = buildApp({ readOnly: true });
+  try {
+    const before = await getModel('processes', 'order-discount');
+    const saveProcess = await app.inject({ method: 'PUT', url: '/processes/order-discount', payload: { xml: before } });
+    assert.equal(saveProcess.statusCode, 403);
+    assert.match(saveProcess.json().error, /disabled in the public demo/);
+    const decision = (await app.inject({ method: 'GET', url: '/decisions/order-discount' })).json();
+    const saveDecision = await app.inject({ method: 'PUT', url: '/decisions/order-discount', payload: decision });
+    assert.equal(saveDecision.statusCode, 403);
+    assert.equal(await getModel('processes', 'order-discount'), before);
+    const run = await app.inject({ method: 'POST', url: '/processes/order-discount/start', payload: { variables: { customerTier: 'gold', orderTotal: 150 } } });
+    assert.equal(run.statusCode, 200, run.body);
+    assert.equal((await app.inject({ method: 'GET', url: '/health' })).json().readOnly, true);
+  } finally { await app.close(); }
+});

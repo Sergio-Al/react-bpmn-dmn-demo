@@ -5,11 +5,14 @@ import { createJevAssessor, type JevAssessor, ZenDecisionService } from '@app/de
 import { getModel, listModels, saveModel } from './store.js';
 import { crmRunLog, runProcess } from './process.js';
 import { validatePortableDecision } from './portable-decision.js';
-import { badRequest, ClientError } from './errors.js';
+import { badRequest, ClientError, forbidden } from './errors.js';
 import { registerRequestRoutes } from './requests.js';
 
-export function buildApp(options: { assessor?: JevAssessor; logCrmRun?: (entry: Record<string, unknown>) => void } = {}) {
+export function buildApp(options: { assessor?: JevAssessor; logCrmRun?: (entry: Record<string, unknown>) => void; readOnly?: boolean } = {}) {
   const app = Fastify({ logger: false });
+  // Public demos run read-only: models can be run and edited in the browser, but not saved.
+  const readOnly = options.readOnly ?? process.env.DEMO_READ_ONLY === '1';
+  const rejectWrites = () => { if (readOnly) throw forbidden('Saving is disabled in the public demo. Clone the repo to edit models.'); };
   app.register(cors, { origin: true });
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof ClientError) return reply.code(error.statusCode).send({ error: error.message });
@@ -28,10 +31,11 @@ export function buildApp(options: { assessor?: JevAssessor; logCrmRun?: (entry: 
   });
   registerRequestRoutes(app, decisions, { assessor, logCrmRun: options.logCrmRun });
 
-  app.get('/health', async () => ({ ok: true }));
+  app.get('/health', async () => ({ ok: true, readOnly }));
   app.get('/processes', async () => listModels('processes'));
   app.get<{ Params: { id: string } }>('/processes/:id', async request => ({ xml: await getModel('processes', request.params.id) }));
   app.put<{ Params: { id: string }; Body: { xml: string } }>('/processes/:id', async request => {
+    rejectWrites();
     if (!request.body || typeof request.body !== 'object' || Array.isArray(request.body) || typeof request.body.xml !== 'string' || !request.body.xml.trim()) throw badRequest('Expected xml string');
     await getModel('processes', request.params.id);
     try {
@@ -52,6 +56,7 @@ export function buildApp(options: { assessor?: JevAssessor; logCrmRun?: (entry: 
   app.get('/decisions', async () => listModels('decisions'));
   app.get<{ Params: { id: string } }>('/decisions/:id', async request => JSON.parse(await getModel('decisions', request.params.id)));
   app.put<{ Params: { id: string }; Body: object }>('/decisions/:id', async request => {
+    rejectWrites();
     const graph = request.body;
     await getModel('decisions', request.params.id);
     try { validatePortableDecision(graph); } catch (error) { throw badRequest((error as Error).message); }

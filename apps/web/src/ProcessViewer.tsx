@@ -4,6 +4,7 @@ import camundaModdle from 'camunda-bpmn-moddle/resources/camunda.json';
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-font/css/bpmn.css';
 import { clearPath, highlightPath, markAiTasks } from './pathHighlight';
+import { bpmnRenderer, useThemeMode } from './theme';
 
 export type PathNote = { id: string; text: string; tone: 'rules' | 'ai' | 'action' };
 
@@ -14,13 +15,16 @@ export default function ProcessViewer({ xml, path, notes, label }: {
   const host = useRef<HTMLDivElement>(null);
   const [viewer, setViewer] = useState<NavigatedViewer | null>(null);
   const [ready, setReady] = useState(false);
+  const mode = useThemeMode();
 
   useEffect(() => {
     if (!host.current) return;
-    const instance = new NavigatedViewer({ container: host.current, moddleExtensions: { camunda: camundaModdle } });
+    // Colors are baked in at creation, so the viewer is rebuilt when the theme changes.
+    const instance = new NavigatedViewer({ container: host.current, moddleExtensions: { camunda: camundaModdle }, bpmnRenderer: bpmnRenderer(mode) } as any);
+    setReady(false);
     setViewer(instance);
     return () => { instance.destroy(); setViewer(null); };
-  }, []);
+  }, [mode]);
 
   useEffect(() => {
     if (!viewer || !xml) return;

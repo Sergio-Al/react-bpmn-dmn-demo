@@ -1,5 +1,9 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Alert, App as AntApp, Button, Card, ConfigProvider, Empty, Input, Layout, Segmented, Select, Skeleton, Space, Timeline, Tooltip, Tour, Typography, type TourProps } from 'antd';
+import { BranchesOutlined, CompassOutlined, MoonOutlined, PlayCircleOutlined, SendOutlined, SunOutlined, TableOutlined, TeamOutlined } from '@ant-design/icons';
 import { api } from './api';
+import { antdThemeFor, cssVars, ThemeModeContext, type Mode } from './theme';
+import { markTourSeen, TOUR_KEYS, tourSeen, tourTarget } from './tour';
 
 const ProcessEditor = lazy(() => import('./ProcessEditor'));
 const DecisionEditor = lazy(() => import('./DecisionEditor'));
@@ -13,7 +17,25 @@ type CrmFixture = { payload: Record<string, unknown> };
 const allowedNodes = new Set(['inputNode', 'outputNode', 'decisionTableNode']);
 const nodeNames: Record<string, string> = { functionNode: 'Function', expressionNode: 'Expression', switchNode: 'Switch' };
 
+const pages: Array<{ value: Page; label: string; icon: ReactNode }> = [
+  { value: 'crm', label: 'CRM showcase', icon: <TeamOutlined /> },
+  { value: 'process', label: 'Process modeler', icon: <BranchesOutlined /> },
+  { value: 'decision', label: 'Decision editor', icon: <TableOutlined /> },
+  { value: 'send', label: 'Send request', icon: <SendOutlined /> },
+];
+
+function initialMode(): Mode {
+  try {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+  } catch { /* storage can be unavailable; fall back to the OS setting */ }
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+const loading = <div className="page-loading"><Skeleton active paragraph={{ rows: 6 }} /></div>;
+
 export function App() {
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [page, setPage] = useState<Page>('crm');
   const [processes, setProcesses] = useState<string[]>([]);
   const [decisions, setDecisions] = useState<string[]>([]);
@@ -29,8 +51,18 @@ export function App() {
   const clearHighlight = useCallback(() => setHighlight(null), []);
   const [processSaveStatus, setProcessSaveStatus] = useState('');
   const [decisionSaveStatus, setDecisionSaveStatus] = useState('');
-  const [runStatus, setRunStatus] = useState('');
+  const [running, setRunning] = useState(false);
+  const [runError, setRunError] = useState('');
   const [loadStatus, setLoadStatus] = useState('');
+  const [crmTourSignal, setCrmTourSignal] = useState(0);
+  const [processTourOpen, setProcessTourOpen] = useState(false);
+  const [processTourStep, setProcessTourStep] = useState(0);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = mode;
+    document.documentElement.style.colorScheme = mode;
+    try { localStorage.setItem('theme', mode); } catch { /* ignore */ }
+  }, [mode]);
 
   useEffect(() => {
     Promise.all([api<string[]>('/processes'), api<string[]>('/decisions')]).then(([p, d]) => { setProcesses(p); setDecisions(d); }).catch(error => setLoadStatus(String(error)));
@@ -64,6 +96,36 @@ export function App() {
     api<any>(`/decisions/${decisionKey}`).then(data => { setGraph(data); setLoadStatus(''); }).catch(error => setLoadStatus(String(error)));
   }, [decisionKey]);
 
+  // Process modeler tour: opens once on the first visit, after bpmn-js has drawn its palette.
+  useEffect(() => {
+    if (page !== 'process' || !xml || tourSeen(TOUR_KEYS.process)) return;
+    const timer = window.setTimeout(() => { setProcessTourStep(0); setProcessTourOpen(true); }, 600);
+    return () => window.clearTimeout(timer);
+  }, [page, xml]);
+
+  function startTour() {
+    if (page === 'crm') setCrmTourSignal(value => value + 1);
+    if (page === 'process') { setProcessTourStep(0); setProcessTourOpen(true); }
+  }
+  function closeProcessTour() { setProcessTourOpen(false); markTourSeen(TOUR_KEYS.process); }
+  async function changeProcessTourStep(next: number) {
+    if (running) return;
+    if (next === 4 && !highlight) await run(); // "Run it" runs the process so the last step shows the drawn path
+    setProcessTourStep(next);
+  }
+  const processTourSteps: TourProps['steps'] = [
+    { title: 'Build the process', target: () => document.querySelector<HTMLElement>('.djs-palette') as HTMLElement, placement: 'right',
+      description: 'Drag events, tasks and gateways onto the canvas. This is a standard BPMN 2.0 modeler (bpmn-js).' },
+    { title: 'Tasks that call decisions', target: tourTarget('canvas'),
+      description: 'Business rule tasks (the table icon) evaluate a decision table. Select one to set which decision it calls.' },
+    { title: 'Input for a run', target: tourTarget('run-input'), placement: 'left',
+      description: 'An example request for this process is filled in. Edit it to try other paths.' },
+    { title: 'Run it', target: tourTarget('run'), placement: 'left',
+      description: 'Runs the process on the server with bpmn-engine and ZEN.', nextButtonProps: { children: running ? 'Running…' : 'Run it' } },
+    { title: 'The path, drawn', target: tourTarget('canvas'),
+      description: 'The bronze path is what the engine executed; skipped branches fade. Edit the diagram and the highlight clears.', nextButtonProps: { children: 'Done' } },
+  ];
+
   async function saveDecision() {
     if (!graph || !Array.isArray(graph.nodes)) {
       setDecisionSaveStatus('Cannot save: decision is not loaded.');
@@ -93,15 +155,16 @@ export function App() {
 
   async function run() {
     try {
-      setRunStatus('Running…');
+      setRunning(true);
+      setRunError('');
       setResult(null);
       setHighlight(null);
       const parsed = JSON.parse(variables);
       const response = await api<RunResult>(`/processes/${processKey}/start`, { method: 'POST', body: JSON.stringify({ variables: parsed }) });
       setResult(response);
       setHighlight(response.path.map(step => step.id));
-      setRunStatus('Process completed');
-    } catch (error) { setRunStatus(String(error)); }
+    } catch (error) { setRunError(String(error)); }
+    finally { setRunning(false); }
   }
 
   function changeProcess(key: string) {
@@ -111,24 +174,69 @@ export function App() {
     setVariables('{}');
     setResult(null);
     setHighlight(null);
-    setRunStatus('');
+    setRunError('');
   }
 
-  return <div className="app-shell">
-    <header><h1>BPMN + Decisions</h1><nav><button className={page === 'crm' ? 'active' : ''} onClick={() => setPage('crm')}>CRM showcase</button><button className={page === 'process' ? 'active' : ''} onClick={() => setPage('process')}>Process modeler</button><button className={page === 'decision' ? 'active' : ''} onClick={() => setPage('decision')}>Decision editor</button><button className={page === 'send' ? 'active' : ''} onClick={() => setPage('send')}>Send request</button></nav></header>
-    <main className={page === 'send' ? 'send-layout' : page === 'crm' ? 'crm-layout' : ''}>
-      {page === 'send' ? <Suspense fallback={<div className="editor-loading">Loading request form…</div>}><SendRequest /></Suspense> : <>
-      {page === 'crm' ? <Suspense fallback={<div className="editor-loading">Loading CRM showcase…</div>}><CrmShowcase /></Suspense> : <>
-      <section className="workspace">
-        <div className="bar"><label>{page === 'process' ? 'Process' : 'Decision'} <select value={page === 'process' ? processKey : decisionKey} onChange={event => page === 'process' ? changeProcess(event.target.value) : setDecisionKey(event.target.value)}>{(page === 'process' ? processes : decisions).map(key => <option key={key}>{key}</option>)}</select></label>{page === 'decision' && <div className="save-actions"><span role="status">{decisionSaveStatus}</span><button onClick={saveDecision}>Save decision</button></div>}</div>
-        {loadStatus && <p className="load-status" role="alert">{loadStatus}</p>}
-        <Suspense fallback={<div className="editor-loading">Loading editor…</div>}>
-          {page === 'process' ? <ProcessEditor xml={xml} onSave={saveProcess} saveStatus={processSaveStatus} decisionKey={taskDecisionKey} setDecisionKey={setTaskDecisionKey} highlight={highlight} onEdit={clearHighlight} /> : <DecisionEditor graph={graph} onChange={setGraph} />}
-        </Suspense>
-      </section>
-      <aside className="run-panel"><h2>Run process</h2><label>Input variables<textarea value={variables} onChange={event => { inputRevision.current++; setVariables(event.target.value); }} spellCheck={false} /></label><button onClick={run}>Run</button>{runStatus && <p role="status">{runStatus}</p>}{result && <><h3>Path taken</h3>{page === 'process' && <p className="run-hint">{highlight ? 'Drawn on the diagram.' : 'The diagram changed since this run.'}</p>}<ol className="run-path">{result.path.map((step, index) => <li key={`${step.id}-${index}`}>{step.name}</li>)}</ol><h3>Final variables</h3><pre>{JSON.stringify(result.variables, null, 2)}</pre></>}</aside>
-      </>}
-      </>}
-    </main>
-  </div>;
+  const isEditor = page === 'process' || page === 'decision';
+  const keys = page === 'process' ? processes : decisions;
+
+  return <ConfigProvider theme={antdThemeFor(mode)}>
+    <ThemeModeContext.Provider value={mode}>
+      <AntApp>
+        <Layout className={`app-shell theme-${mode}`} style={cssVars(mode)}>
+          <Layout.Header className="app-header">
+            <div className="brand"><span className="brand-mark" aria-hidden="true" /><span className="brand-name">Hybrid <em>Decisions</em></span></div>
+            <Segmented<Page> className="app-nav" value={page} onChange={setPage}
+              options={pages.map(item => ({ value: item.value, label: <span className="nav-item">{item.icon}<span className="nav-label">{item.label}</span></span> }))} />
+            {(page === 'crm' || page === 'process') && <Tooltip title="Walk through this page">
+              <Button type="text" icon={<CompassOutlined />} onClick={startTour}><span className="nav-label">Tour</span></Button>
+            </Tooltip>}
+            <Tooltip title={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}>
+              <Button type="text" shape="circle" aria-label={mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+                icon={mode === 'dark' ? <SunOutlined /> : <MoonOutlined />} onClick={() => setMode(mode === 'dark' ? 'light' : 'dark')} />
+            </Tooltip>
+          </Layout.Header>
+          <Layout.Content className={`app-main page-${page}`}>
+            {page === 'send' && <Suspense fallback={loading}><SendRequest /></Suspense>}
+            {page === 'crm' && <Suspense fallback={loading}><CrmShowcase tourSignal={crmTourSignal} /></Suspense>}
+            {isEditor && <div className="editor-layout">
+              <Card className="workspace" size="small"
+                title={<Space size={8}><Typography.Text type="secondary">{page === 'process' ? 'Process' : 'Decision'}</Typography.Text>
+                  <Select size="middle" style={{ minWidth: 220 }} value={page === 'process' ? processKey : decisionKey}
+                    onChange={value => page === 'process' ? changeProcess(value) : setDecisionKey(value)}
+                    options={keys.map(key => ({ value: key, label: key }))} /></Space>}
+                extra={page === 'decision' && <Space><Typography.Text type="secondary" role="status">{decisionSaveStatus}</Typography.Text><Button type="primary" onClick={saveDecision}>Save decision</Button></Space>}>
+                {loadStatus && <Alert type="error" showIcon message={loadStatus} className="load-status" />}
+                <Suspense fallback={loading}>
+                  {page === 'process'
+                    ? <ProcessEditor xml={xml} onSave={saveProcess} saveStatus={processSaveStatus} decisionKey={taskDecisionKey} setDecisionKey={setTaskDecisionKey} highlight={highlight} onEdit={clearHighlight} />
+                    : <DecisionEditor graph={graph} onChange={setGraph} />}
+                </Suspense>
+              </Card>
+              <Card className="run-panel" size="small" title="Run process">
+                <Typography.Text type="secondary">Input variables</Typography.Text>
+                <Input.TextArea data-tour="run-input" className="code-input" value={variables} autoSize={{ minRows: 6, maxRows: 14 }} spellCheck={false}
+                  onChange={event => { inputRevision.current++; setVariables(event.target.value); }} />
+                <Button data-tour="run" type="primary" block icon={<PlayCircleOutlined />} loading={running} onClick={run}>Run</Button>
+                {runError && <Alert type="error" showIcon message={runError} />}
+                {result ? <>
+                  <div className="run-section">
+                    <Typography.Title level={5}>Path taken</Typography.Title>
+                    {page === 'process' && <Typography.Text type="secondary">{highlight ? 'Drawn on the diagram.' : 'The diagram changed since this run.'}</Typography.Text>}
+                    <Timeline className="run-path" items={result.path.map(step => ({ color: 'var(--path)', children: step.name }))} />
+                  </div>
+                  <div className="run-section">
+                    <Typography.Title level={5}>Final variables</Typography.Title>
+                    <pre className="code-block">{JSON.stringify(result.variables, null, 2)}</pre>
+                  </div>
+                </> : !runError && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Run the process to see its path." />}
+              </Card>
+            </div>}
+          </Layout.Content>
+          {page === 'process' && <Tour open={processTourOpen} current={processTourStep} onChange={changeProcessTourStep} onClose={closeProcessTour} onFinish={closeProcessTour}
+            steps={processTourSteps} indicatorsRender={(current, total) => <span className="tour-count">{current + 1} / {total}</span>} />}
+        </Layout>
+      </AntApp>
+    </ThemeModeContext.Provider>
+  </ConfigProvider>;
 }

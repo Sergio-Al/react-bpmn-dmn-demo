@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { Alert, Button, Card, Col, Descriptions, Empty, Input, Row, Select, Space, Timeline, Typography } from 'antd';
+import { SendOutlined } from '@ant-design/icons';
 import { api, ApiError } from './api';
 
 type ContractRef = { type: string; version: number };
@@ -14,6 +16,7 @@ export default function SendRequest() {
   const [selected, setSelected] = useState('');
   const [envelope, setEnvelope] = useState('');
   const [status, setStatus] = useState('');
+  const [sending, setSending] = useState(false);
   const [result, setResult] = useState<SendResult | null>(null);
   const [violations, setViolations] = useState<Violation[]>([]);
 
@@ -40,12 +43,12 @@ export default function SendRequest() {
   async function send() {
     setResult(null);
     setViolations([]);
-    setStatus('Sending…');
+    setStatus('');
+    setSending(true);
     try {
       const body = JSON.parse(envelope);
       const response = await api<SendResult>('/requests', { method: 'POST', body: JSON.stringify(body) });
       setResult(response);
-      setStatus('Request completed');
     } catch (error) {
       if (error instanceof ApiError && error.details && typeof error.details === 'object') {
         const details = error.details as { code?: string; message?: string; errors?: Violation[] };
@@ -54,21 +57,39 @@ export default function SendRequest() {
       } else {
         setStatus(String(error));
       }
-    }
+    } finally { setSending(false); }
   }
 
-  return <section className="send-page">
-    <div className="send-form">
-      <h2>Send request</h2>
-      <label>Contract <select value={selected} onChange={event => setSelected(event.target.value)}>{contracts.map(item => <option key={`${item.type}:${item.version}`} value={`${item.type}:${item.version}`}>{item.type} v{item.version}</option>)}</select></label>
-      <label className="envelope-label">Request envelope<textarea value={envelope} onChange={event => setEnvelope(event.target.value)} spellCheck={false} /></label>
-      <button onClick={send} disabled={!envelope}>Send</button>
-      {status && <p role="status">{status}</p>}
-      {violations.length > 0 && <div role="alert"><h3>Contract violations</h3><ul>{violations.map((error, index) => <li key={`${error.path}-${index}`}><code>{error.path}</code>: {error.message}</li>)}</ul></div>}
-    </div>
-    <div className="send-result">
-      <h2>Result</h2>
-      {result ? <><p><strong>Process:</strong> {result.processKey}</p><p><strong>Request ID:</strong> {result.requestId}</p><h3>Path taken</h3><ol>{result.path.map((step, index) => <li key={`${step.id}-${index}`}>{step.name}</li>)}</ol><h3>Final variables</h3><pre>{JSON.stringify(result.variables, null, 2)}</pre></> : <p>Send a request to see its selected process and output.</p>}
-    </div>
-  </section>;
+  return <Row gutter={[16, 16]} className="send-page">
+    <Col xs={24} lg={12}>
+      <Card title="Send request" className="fill-card">
+        <Space direction="vertical" size={12} className="stack">
+          <label className="control"><Typography.Text type="secondary">Contract</Typography.Text>
+            <Select value={selected || undefined} onChange={setSelected} style={{ minWidth: 220 }} aria-label="Contract"
+              options={contracts.map(item => ({ value: `${item.type}:${item.version}`, label: `${item.type} v${item.version}` }))} />
+          </label>
+          <label><Typography.Text type="secondary">Request envelope</Typography.Text>
+            <Input.TextArea className="code-input" value={envelope} onChange={event => setEnvelope(event.target.value)} spellCheck={false} autoSize={{ minRows: 14, maxRows: 28 }} />
+          </label>
+          <Button type="primary" icon={<SendOutlined />} onClick={send} disabled={!envelope} loading={sending}>Send</Button>
+          {status && <Alert type="error" showIcon message={status}
+            description={violations.length > 0 && <ul className="violations">{violations.map((error, index) => <li key={`${error.path}-${index}`}><code>{error.path}</code>: {error.message}</li>)}</ul>} />}
+        </Space>
+      </Card>
+    </Col>
+    <Col xs={24} lg={12}>
+      <Card title="Result" className="fill-card">
+        {result ? <Space direction="vertical" size={16} className="stack">
+          <Descriptions size="small" column={1} colon={false} items={[
+            { key: 'process', label: 'Process', children: <code className="rule-code">{result.processKey}</code> },
+            { key: 'request', label: 'Request ID', children: <Typography.Text copyable className="mono">{result.requestId}</Typography.Text> },
+          ]} />
+          <div><Typography.Title level={5}>Path taken</Typography.Title>
+            <Timeline className="run-path" items={result.path.map(step => ({ color: 'var(--path)', children: step.name }))} /></div>
+          <div><Typography.Title level={5}>Final variables</Typography.Title>
+            <pre className="code-block">{JSON.stringify(result.variables, null, 2)}</pre></div>
+        </Space> : <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Send a request to see which process it routes to and what it returns." />}
+      </Card>
+    </Col>
+  </Row>;
 }
